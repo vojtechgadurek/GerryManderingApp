@@ -7,6 +7,7 @@ using System.Xml.Linq;
 
 class VotingSystems
 {
+    //Najít Porubu => je v datech?
     //Constanty
     //Počet okrsků je 14886
     
@@ -14,13 +15,41 @@ class VotingSystems
 
     //Existuje 111 okrsků v zahraničí => Pozor na to
     const int N_OKRSKY_ZAHRA = 111;
-    
+
     //Zahraniční obce mají číslo 999997
     
     const int OBCE_ZAHRA = 999997;
     
+    //Pozice zahraničních okrsků
+    const int POZICE_ZAHRA = -1;
+    
+    //Pozice nenalezených okrsků
+    const int POZICE_NENALEZEN = 1000;
+
+    static HashSet<string> SPECIAL_OKRSKY = new HashSet<string>() { "500054-1000", 
+        "532053-0",
+        "544256-0",
+        "554774-8000",
+        "554961-0",
+        "567892-1000",
+        "556904-0",
+        "569810-0",
+        "574716-1000",
+        "586846-0",
+        "550990-27000",
+        "500496-0",
+        "585068-0",
+        "546224-15000"
+    };
+            
+        
+
     //Počer stran je 22
     const int N_PARTIES = 22;
+    
+    //Covid okrsky
+    
+    
 
 
     enum DataNames
@@ -36,7 +65,15 @@ class VotingSystems
         KSTRANA,
         POC_HLASU,
     }
-
+    
+    enum Status {
+        LOCAL,
+        ZAHRA,
+        SPACIAL,
+        NOT_FOUND,
+    }
+    
+    
     static string fsuperId(string obec, string okrsek)
     {
         return obec + "-" + okrsek;
@@ -46,9 +83,22 @@ class VotingSystems
         public int id;
         public int obec;
         public int okrsek;
+        public Status status = Status.NOT_FOUND;
         public Tuple<int, int> mapPoint;
         public int[] votesParties = new int[N_PARTIES + 1];
         public string superId;
+
+        private void DetermineStatus()
+        {
+            if (obec == OBCE_ZAHRA)
+            {
+                status = Status.ZAHRA;
+            }
+            else if (SPECIAL_OKRSKY.Contains(superId))
+            {
+                status = Status.SPACIAL;
+            }
+        }
 
         public Okrsek(int id, int obec, int okrsek)
         {
@@ -56,7 +106,28 @@ class VotingSystems
             this.obec = obec;
             this.okrsek = okrsek;
             this.superId = fsuperId(obec.ToString(), okrsek.ToString());
+            DetermineStatus();
         }
+
+        public bool AddLocation(Tuple<int, int> mapPoint)
+        {
+            if (this.status == Status.NOT_FOUND)
+            {
+                this.mapPoint = mapPoint;
+                this.status = Status.LOCAL;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        
+        public void AddVote(int party, int votes)
+        {
+            votesParties[party] += votes;
+        }
+        
     }
 
     static Okrsek[] CreateOkrskyData()
@@ -96,8 +167,7 @@ class VotingSystems
             {
                 votingData[id] = new Okrsek(id, obec, okrsek);
             }
-
-            votingData[id].votesParties[party] = votes;
+            votingData[id].AddVote(party, votes);
         }
 
         votingDataReader.Close();
@@ -119,8 +189,37 @@ class VotingSystems
         return translator;
     }
 
-    
-    static IDictionary<string, Tuple<int, int>> CreateOkrskyMapData()
+    class Location
+    {
+        private Tuple<int, int> mapPoint;
+        public bool used = false;
+        public string superId;
+        public string superId2;
+
+        public Location(Tuple<int, int> mapPoint, string superId)
+        {
+            this.superId = superId;
+            this.mapPoint = mapPoint;
+            this.superId2 = superId;
+        }
+        
+        public void AddSuperId(string superId)
+        {
+            this.superId2 = superId;
+        }
+
+        public Tuple<int, int> getLocation()
+        {
+            if (used)
+            {
+                Console.WriteLine("Error: Location already used" + superId);
+                return mapPoint;
+            }
+            used = true;
+            return mapPoint;
+        }
+    }
+    static IDictionary<string, Location> CreateOkrskyMapData()
     {
         //open map_data.txt file
         // Data are in format
@@ -130,7 +229,7 @@ class VotingSystems
         // Obec2(optional)
         // Freespace "      "
         const string FREESPACE = "      ";
-        IDictionary<string, Tuple<int, int>> mapData = new Dictionary<string, Tuple<int, int>>();
+        IDictionary<string, Location> mapData = new Dictionary<string, Location>();
 
         FileStream mapDataStream = File.Open("map_data.txt", FileMode.Open);
         StreamReader mapDataReader = new StreamReader(mapDataStream);
@@ -168,13 +267,14 @@ class VotingSystems
             
            
 
-            mapData.Add(superId, positionXY);
+            mapData.Add(superId, new Location(positionXY, superId));
             
             
             if (obec2Exists)
             {
                 string superId2 = fsuperId(obec2, okrsek);
-                mapData.Add(superId2, positionXY);
+                mapData.Add(superId2, new Location(positionXY, superId));
+                mapData[superId].AddSuperId(superId2);
             }
 
             counter++;
@@ -186,57 +286,90 @@ class VotingSystems
     return mapData;
     }
 
-    static Okrsek[] ConnectData()
+    static Okrsek[] ConnectData(Okrsek[] votingData,IDictionary<string, Location> mapData, bool verbose)
     {
-        Okrsek[] votingData = CreateOkrskyData();
-        IDictionary<string, Tuple<int, int>> mapData = CreateOkrskyMapData();
-        
-        foreach (var okrsek in votingData)
+        //Connect data
+        for (int i = 1; i < votingData.Length; i++)
         {
-            if (okrsek != null)
+            if (votingData[i] != null)
             {
-                string superId = okrsek.superId;
+                string superId = votingData[i].superId;
                 if (mapData.ContainsKey(superId))
                 {
-                    okrsek.mapPoint = mapData[superId];
+                    votingData[i].AddLocation(mapData[superId].getLocation());
+                }
+                else
+                {
+                    if (verbose)
+                    {
+                        Console.WriteLine("Error: Location not found " + superId);
+                    }
+                    votingData[i].status = Status.NOT_FOUND;
                 }
             }
         }
-        
         return votingData;
-
     }
 
-    static void CheckDataAllHaveLocation(Okrsek[] votingData)
+    static void CheckDataAllHaveLocation(Okrsek[] votingData, bool verbose)
     {
         IList<string> missingLocation = new List<string>();
-
-        foreach (var okrsek in votingData)
+        int counter = 0;
+        foreach (var okrsek in votingData) {
+            if (okrsek != null)
             {
-                if (okrsek != null)
+                if (okrsek.status == Status.NOT_FOUND)
                 {
-                    if (okrsek.mapPoint == null)
-                    {
-                        missingLocation.Add("Error: Okrsek " + okrsek.id + " " + okrsek.obec + " " + okrsek.okrsek + " do not have location");
-                    }
+                    counter++;
+                    missingLocation.Add("Error: Okrsek " + okrsek.id + " " + okrsek.obec + " " + okrsek.okrsek + " do not have location");
                 }
             }
-
-        foreach (var missing in missingLocation)
-        {
-            Console.WriteLine(missing);
         }
+
+        if (verbose)
+        {
+            foreach (var missing in missingLocation)
+            {
+                Console.WriteLine(missing);
+            }
+        }
+        Console.WriteLine("Missing locations: " + counter + " out of " + votingData.Length);
     }
-    static void CheckDataGood(Okrsek[] votingData)
+
+    static void CheckLocationsAllHaveData(IDictionary<string, Location> locations, bool verbose)
     {
-        CheckDataAllHaveLocation(votingData);
+        int counter_n = 0;
+        int counter = 0;
+        foreach (var location in locations.Values)
+        {
+            counter_n++;
+            if (!location.used)
+            {
+                if(verbose){Console.WriteLine("Error: Location " + location.superId + " " + location.superId2 + "  not used");}
+                counter++;
+            }
+        }
+        Console.WriteLine("Locations not used: " + counter + " of " + counter_n);
+    }
+    
+    static void CheckDataGood(Okrsek[] votingData, IDictionary<string, Location> locations, bool verbose)
+    {
+        CheckDataAllHaveLocation(votingData, verbose);
+        CheckLocationsAllHaveData(locations, verbose);
     }
     
     
     public static void Main(string[] args)
     {
-        Okrsek[] votingData = ConnectData();
-        CheckDataGood(votingData);
+        IDictionary<string, Location> mapData = CreateOkrskyMapData();
+        Okrsek[] votingData = CreateOkrskyData();
+        
+        const bool verbose = false;
+        ConnectData(votingData, mapData, verbose);
+        CheckDataGood(votingData, mapData, verbose);
+        
+        
+        /*
         //Add all votes to one array
         int[] votesAll = new int[N_PARTIES + 1];
         int max_id = N_OKRSKY;
@@ -273,7 +406,8 @@ class VotingSystems
             }
         }
         Console.WriteLine(count);
-
+        */
+        
             //Find maximum positions of okrseks to draw good map
         int maxX = votingData[1].mapPoint.Item1;
         int minX = votingData[1].mapPoint.Item1;
