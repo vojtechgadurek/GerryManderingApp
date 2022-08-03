@@ -23,7 +23,7 @@ class VotingSystems
     
     const int N_OKRSKY = 14886 + 1;
 
-    //Existuje 111 okrsků v zahraničí => Pozor na to
+    //Existuje 111 okrsků v zahraničí => Pozor na to META: V součastnosti ignorovány
     const int N_OKRSKY_ZAHRA = 111;
 
     //Zahraniční obce mají číslo 999997
@@ -51,6 +51,8 @@ class VotingSystems
         "585068-0",
         "546224-15000"
     };
+    
+    // META: V součastnosti ignorovány
             
         
 
@@ -430,7 +432,7 @@ class VotingSystems
         //Add all votes to one array
         int[] votesAll = new int[N_PARTIES + 1];
         int max_id = N_OKRSKY;
-        for(int i = 1; i < max_id; i++)
+        for(int i = 0; i < votingData.Length; i++)
         {
             for(int j = 1; j < N_PARTIES + 1; j++)
             {
@@ -455,7 +457,7 @@ class VotingSystems
         }
         
         int count = 0; 
-        for (int i = 1; i < N_OKRSKY ; i++)
+        for (int i = 1; i < votingData.Length ; i++)
         {
             if (votingData[i].mapPoint != null)
             {
@@ -506,13 +508,39 @@ class VotingSystems
         {
             if (votingData[i].status == Status.LOCAL)
             {
-                bitmap.SetPixel(votingData[i].relativeMapPoint.Item1, votingData[i].relativeMapPoint.Item2, Color.FromArgb(255, 231, 72));
+                bitmap.SetPixel(votingData[i].relativeMapPoint.Item1, votingData[i].relativeMapPoint.Item2, Color.FromArgb(255, 2, 229));
             }
         }
         
         //Draw bitmap
-        bitmap.Save("map.png");
+        bitmap.Save("map.bmp");
         
+        //Open map of kraje
+        Bitmap map_kraje = new Bitmap("map_kraje.bmp");
+        
+        
+        IDictionary<int, IList<Okrsek>> kraje = new Dictionary<int, IList<Okrsek>>();
+        
+        
+        //Tohle není pěkné, předělat pls, ale funguje
+        for(int i = 1; i < N_OKRSKY; i++)
+        {
+            if(votingData[i].status == Status.LOCAL)
+            {
+                
+                int kraj = map_kraje.GetPixel(votingData[i].relativeMapPoint.Item1, votingData[i].relativeMapPoint.Item2).R;
+                if(!kraje.ContainsKey(kraj))
+                {
+                    kraje.Add(kraj, new List<Okrsek>());
+                }
+                kraje[kraj].Add(votingData[i]);
+            }
+        }
+
+        foreach (var kraj in kraje.Values)
+        {
+            calculateVotes(kraj.ToArray());
+        }
 
 
 
