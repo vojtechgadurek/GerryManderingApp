@@ -1,0 +1,75 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v6.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v6.0": {
+      "volebniApka/1.0.0": {
+        "dependencies": {
+          "System.Drawing.Common": "7.0.0-preview.6.22324.4"
+        },
+        "runtime": {
+          "volebniApka.dll": {}
+        }
+      },
+      "Microsoft.Win32.SystemEvents/7.0.0-preview.6.22324.4": {
+        "runtime": {
+          "lib/net6.0/Microsoft.Win32.SystemEvents.dll": {
+            "assemblyVersion": "7.0.0.0",
+            "fileVersion": "7.0.22.32404"
+          }
+        },
+        "runtimeTargets": {
+          "runtimes/win/lib/net6.0/Microsoft.Win32.SystemEvents.dll": {
+            "rid": "win",
+            "assetType": "runtime",
+            "assemblyVersion": "7.0.0.0",
+            "fileVersion": "7.0.22.32404"
+          }
+        }
+      },
+      "System.Drawing.Common/7.0.0-preview.6.22324.4": {
+        "dependencies": {
+          "Microsoft.Win32.SystemEvents": "7.0.0-preview.6.22324.4"
+        },
+        "runtime": {
+          "lib/net6.0/System.Drawing.Common.dll": {
+            "assemblyVersion": "7.0.0.0",
+            "fileVersion": "7.0.22.32404"
+          }
+        },
+        "runtimeTargets": {
+          "runtimes/win/lib/net6.0/System.Drawing.Common.dll": {
+            "rid": "win",
+            "assetType": "runtime",
+            "assemblyVersion": "7.0.0.0",
+            "fileVersion": "7.0.22.32404"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "volebniApka/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Microsoft.Win32.SystemEvents/7.0.0-preview.6.22324.4": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-dPD9SJCpwmDlZY8hC0recgWinW+X2HDukued6KnlXIFbgxAwfDbnZvzmNerv9t8Ncsm6UkBxamns/KbRILUoaQ==",
+      "path": "microsoft.win32.systemevents/7.0.0-preview.6.22324.4",
+      "hashPath": "microsoft.win32.systemevents.7.0.0-preview.6.22324.4.nupkg.sha512"
+    },
+    "System.Drawing.Common/7.0.0-preview.6.22324.4": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-8i6NJVCZK+drP5CDnDTjyPi2G5+RlyyO/TEvR51xBFztjuzNfRN2MkmI3yYx1xPd6Jup9ookixaLJ3dQ3ZT/cA==",
+      "path": "system.drawing.common/7.0.0-preview.6.22324.4",
+      "hashPath": "system.drawing.common.7.0.0-preview.6.22324.4.nupkg.sha512"
+    }
+  }
+}
