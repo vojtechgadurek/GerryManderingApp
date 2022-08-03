@@ -1,8 +1,15 @@
 {
   "version": 2,
-  "dgSpecHash": "NLOB9O81vodLCzcLZ8geH4GfqTh5HuTmiKCkBFuAvfcXSGB+t0fQi5DuK3jgdLcRwB0BussX+/BHTZspCzS19A==",
+  "dgSpecHash": "0HGOXwJ+E28t5ei73j5K8szWGJL4b7NFIV7S1eYUlG+M96z+AYs/cgF10lhxK5Jvs7djAvvDs27qAHHdLHw+/Q==",
   "success": true,
   "projectFilePath": "/home/vojtech/RiderProjects/volebniApka/volebniApka/volebniApka.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "/home/vojtech/.nuget/packages/microsoft.win32.systemevents/7.0.0-preview.6.22324.4/microsoft.win32.systemevents.7.0.0-preview.6.22324.4.nupkg.sha512",
+    "/home/vojtech/.nuget/packages/skiasharp/2.88.1-preview.91/skiasharp.2.88.1-preview.91.nupkg.sha512",
+    "/home/vojtech/.nuget/packages/skiasharp.linux/1.59.3/skiasharp.linux.1.59.3.nupkg.sha512",
+    "/home/vojtech/.nuget/packages/skiasharp.nativeassets.macos/2.88.1-preview.91/skiasharp.nativeassets.macos.2.88.1-preview.91.nupkg.sha512",
+    "/home/vojtech/.nuget/packages/skiasharp.nativeassets.win32/2.88.1-preview.91/skiasharp.nativeassets.win32.2.88.1-preview.91.nupkg.sha512",
+    "/home/vojtech/.nuget/packages/system.drawing.common/7.0.0-preview.6.22324.4/system.drawing.common.7.0.0-preview.6.22324.4.nupkg.sha512"
+  ],
   "logs": []
 }

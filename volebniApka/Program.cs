@@ -1,9 +1,19 @@
 ﻿// See https://aka.ms/new-console-template for mo
 
-
+using System;
+using System.Collections;
 using System.Net;
+using System.Net.Mime;
 using System.Xml;
 using System.Xml.Linq;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Drawing.Drawing2D;
+using System.Drawing.Text;
+using System.Drawing.Printing;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
 
 class VotingSystems
 {
@@ -357,19 +367,43 @@ class VotingSystems
         CheckDataAllHaveLocation(votingData, verbose);
         CheckLocationsAllHaveData(locations, verbose);
     }
-    
-    
-    public static void Main(string[] args)
+    static int[] findExtremes(Okrsek[] votingData)
     {
-        IDictionary<string, Location> mapData = CreateOkrskyMapData();
-        Okrsek[] votingData = CreateOkrskyData();
-        
-        const bool verbose = false;
-        ConnectData(votingData, mapData, verbose);
-        CheckDataGood(votingData, mapData, verbose);
-        
-        
-        /*
+        int maxX = votingData[1].mapPoint.Item1;
+        int minX = votingData[1].mapPoint.Item1;
+        int maxY = votingData[1].mapPoint.Item2;
+        int minY = votingData[1].mapPoint.Item2;
+        for (int i = 1; i < N_OKRSKY ; i++)
+        {
+            if (votingData[i].status == Status.LOCAL)
+            {
+                if (votingData[i].mapPoint.Item1 > maxX)
+                {
+                    maxX = votingData[i].mapPoint.Item1;
+                }
+
+                if (votingData[i].mapPoint.Item1 < minX)
+                {
+                    minX = votingData[i].mapPoint.Item1;
+                }
+
+                if (votingData[i].mapPoint.Item2 > maxY)
+                {
+                    maxY = votingData[i].mapPoint.Item2;
+                }
+
+                if (votingData[i].mapPoint.Item2 < minY)
+                {
+                    minY = votingData[i].mapPoint.Item2;
+                }
+            }
+        }
+        int[] extremes = new int[4]{maxX, minX, maxY, minY};
+        return extremes;  
+    }
+
+    static void calculateVotes(Okrsek[] votingData)
+    {
         //Add all votes to one array
         int[] votesAll = new int[N_PARTIES + 1];
         int max_id = N_OKRSKY;
@@ -406,36 +440,40 @@ class VotingSystems
             }
         }
         Console.WriteLine(count);
-        */
+    }
+    
+    
+    public static void Main(string[] args)
+    {
+
+        const bool create_new_data = true;
+        const bool save_data = true;
+        const bool verbose = false;
         
-            //Find maximum positions of okrseks to draw good map
-        int maxX = votingData[1].mapPoint.Item1;
-        int minX = votingData[1].mapPoint.Item1;
-        int maxY = votingData[1].mapPoint.Item2;
-        int minY = votingData[1].mapPoint.Item2;
-        for (int i = 1; i < N_OKRSKY + 1; i++)
+        Okrsek[] votingData;
+        
+        
+        if (create_new_data)
         {
-            if (votingData[i].mapPoint.Item1 > maxX)
-            {
-                maxX = votingData[i].mapPoint.Item1;
-            }
-            if (votingData[i].mapPoint.Item1 < minX)
-            {
-                minX = votingData[i].mapPoint.Item1;
-            }
-            if (votingData[i].mapPoint.Item2 > maxY)
-            {
-                maxY = votingData[i].mapPoint.Item2;
-            }
-            if (votingData[i].mapPoint.Item2 < minY)
-            {
-                minY = votingData[i].mapPoint.Item2;
-            }
+            
+            IDictionary<string, Location> mapData = CreateOkrskyMapData();
+            votingData = CreateOkrskyData();
+            ConnectData(votingData, mapData, verbose);
+            CheckDataGood(votingData, mapData, verbose);
         }
-        Console.WriteLine("Max X: " + maxX);
-        Console.WriteLine("Min X: " + minX);
-        Console.WriteLine("Max Y: " + maxY);
-        Console.WriteLine("Min Y: " + minY);
+
+
+        int [] extremes = findExtremes(votingData);
+        Console.WriteLine("This are extremes: " + extremes[0] + " " + extremes[1] + " " + extremes[2] + " " + extremes[3]);
+        //Find maximum positions of okrseks to draw good map
+        
+        //Draw map
+        
+        
+        Bitmap bitmap = new Bitmap(1000, 1000);
+        Graphics graphics = Graphics.FromImage(bitmap);
+        
+
 
 
         //Kraje
