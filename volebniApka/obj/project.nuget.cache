@@ -1,15 +1,15 @@
 {
   "version": 2,
-  "dgSpecHash": "0HGOXwJ+E28t5ei73j5K8szWGJL4b7NFIV7S1eYUlG+M96z+AYs/cgF10lhxK5Jvs7djAvvDs27qAHHdLHw+/Q==",
+  "dgSpecHash": "bL628tb4PBbDL/vy9l3Beo1uLfWLKyTiWYlYEPlyD7mDTzVKCGoEtEtlk4oMOPE6d5jZlVr8nw3pmvpewcXVQw==",
   "success": true,
-  "projectFilePath": "/home/vojtech/RiderProjects/volebniApka/volebniApka/volebniApka.csproj",
+  "projectFilePath": "C:\\Users\\vgvoj\\RiderProjects\\volebniApka\\volebniApka\\volebniApka.csproj",
   "expectedPackageFiles": [
-    "/home/vojtech/.nuget/packages/microsoft.win32.systemevents/7.0.0-preview.6.22324.4/microsoft.win32.systemevents.7.0.0-preview.6.22324.4.nupkg.sha512",
-    "/home/vojtech/.nuget/packages/skiasharp/2.88.1-preview.91/skiasharp.2.88.1-preview.91.nupkg.sha512",
-    "/home/vojtech/.nuget/packages/skiasharp.linux/1.59.3/skiasharp.linux.1.59.3.nupkg.sha512",
-    "/home/vojtech/.nuget/packages/skiasharp.nativeassets.macos/2.88.1-preview.91/skiasharp.nativeassets.macos.2.88.1-preview.91.nupkg.sha512",
-    "/home/vojtech/.nuget/packages/skiasharp.nativeassets.win32/2.88.1-preview.91/skiasharp.nativeassets.win32.2.88.1-preview.91.nupkg.sha512",
-    "/home/vojtech/.nuget/packages/system.drawing.common/7.0.0-preview.6.22324.4/system.drawing.common.7.0.0-preview.6.22324.4.nupkg.sha512"
+    "C:\\Users\\vgvoj\\.nuget\\packages\\microsoft.win32.systemevents\\7.0.0-preview.6.22324.4\\microsoft.win32.systemevents.7.0.0-preview.6.22324.4.nupkg.sha512",
+    "C:\\Users\\vgvoj\\.nuget\\packages\\skiasharp\\2.88.1-preview.91\\skiasharp.2.88.1-preview.91.nupkg.sha512",
+    "C:\\Users\\vgvoj\\.nuget\\packages\\skiasharp.linux\\1.59.3\\skiasharp.linux.1.59.3.nupkg.sha512",
+    "C:\\Users\\vgvoj\\.nuget\\packages\\skiasharp.nativeassets.macos\\2.88.1-preview.91\\skiasharp.nativeassets.macos.2.88.1-preview.91.nupkg.sha512",
+    "C:\\Users\\vgvoj\\.nuget\\packages\\skiasharp.nativeassets.win32\\2.88.1-preview.91\\skiasharp.nativeassets.win32.2.88.1-preview.91.nupkg.sha512",
+    "C:\\Users\\vgvoj\\.nuget\\packages\\system.drawing.common\\7.0.0-preview.6.22324.4\\system.drawing.common.7.0.0-preview.6.22324.4.nupkg.sha512"
   ],
   "logs": []
 }

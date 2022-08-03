@@ -95,9 +95,10 @@ class VotingSystems
         public int okrsek;
         public Status status = Status.NOT_FOUND;
         public Tuple<int, int> mapPoint;
+        public Tuple<int, int> relativeMapPoint;
         public int[] votesParties = new int[N_PARTIES + 1];
         public string superId;
-
+        
         private void DetermineStatus()
         {
             if (obec == OBCE_ZAHRA)
@@ -138,6 +139,28 @@ class VotingSystems
             votesParties[party] += votes;
         }
         
+        public void SetRelativeLocation(int width, int height, int[] extremes)
+        {
+            if (this.status == Status.LOCAL)
+            {
+                int widthEx = extremes[1] - extremes[0];
+                int heightEx = extremes[3] - extremes[2];
+
+                int divider;
+                
+                if (heightEx/height < widthEx/width)
+                {
+                    divider = heightEx;
+                }
+                else
+                {
+                    divider = widthEx;
+                }
+                this.relativeMapPoint = new Tuple<int, int>(
+                    width - (mapPoint.Item1 - extremes[0]) * width / divider,
+                    (mapPoint.Item2 - extremes[2]) * height / divider);
+            }
+        }
     }
 
     static Okrsek[] CreateOkrskyData()
@@ -468,11 +491,30 @@ class VotingSystems
         //Find maximum positions of okrseks to draw good map
         
         //Draw map
+
+        const int map_width = 1000;
+        const int map_height = 1000;
+        for (int i = 1; i < N_OKRSKY; i++)
+        {
+            
+            votingData[i].SetRelativeLocation(map_width, map_height, extremes);
+        }
         
+        Bitmap bitmap = new Bitmap(map_width + 1, map_height + 1);
         
-        Bitmap bitmap = new Bitmap(1000, 1000);
-        Graphics graphics = Graphics.FromImage(bitmap);
+        for (int i = 1; i < N_OKRSKY; i++)
+        {
+            if (votingData[i].status == Status.LOCAL)
+            {
+                bitmap.SetPixel(votingData[i].relativeMapPoint.Item1, votingData[i].relativeMapPoint.Item2, Color.FromArgb(255, 231, 72));
+            }
+        }
         
+        //Draw bitmap
+        bitmap.Save("map.png");
+        
+
+
 
 
 
