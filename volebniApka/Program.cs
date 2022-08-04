@@ -11,6 +11,7 @@ using System.Drawing.Imaging;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.Drawing.Printing;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -20,6 +21,9 @@ class VotingSystems
     //Najít Porubu => je v datech?
     //Constanty
     //Počet okrsků je 14886
+
+    #region Constants
+
     
     const int N_OKRSKY = 14886 + 1;
 
@@ -27,16 +31,18 @@ class VotingSystems
     const int N_OKRSKY_ZAHRA = 111;
 
     //Zahraniční obce mají číslo 999997
-    
+
     const int OBCE_ZAHRA = 999997;
-    
+
     //Pozice zahraničních okrsků
     const int POZICE_ZAHRA = -1;
-    
+
     //Pozice nenalezených okrsků
     const int POZICE_NENALEZEN = 1000;
 
-    static HashSet<string> SPECIAL_OKRSKY = new HashSet<string>() { "500054-1000", 
+    static HashSet<string> SPECIAL_OKRSKY = new HashSet<string>()
+    {
+        "500054-1000",
         "532053-0",
         "544256-0",
         "554774-8000",
@@ -51,19 +57,19 @@ class VotingSystems
         "585068-0",
         "546224-15000"
     };
-    
+
     // META: V součastnosti ignorovány
-            
-        
+
+
 
     //Počer stran je 22
     const int N_PARTIES = 22;
-    
+
     //Covid okrsky
-    
-    
 
 
+
+    #endregion
     enum DataNames
     {
         ID_OKRSKY,
@@ -77,19 +83,32 @@ class VotingSystems
         KSTRANA,
         POC_HLASU,
     }
-    
-    enum Status {
+
+    enum Status
+    {
         LOCAL,
         ZAHRA,
         SPACIAL,
         NOT_FOUND,
     }
-    
-    
+
+    class Party
+    {
+        int id;
+        string name;
+        int number_of_mandates = 0;
+        Party(int id, string name)
+        {
+            this.id = id;
+            this.name = name;
+        }
+    }
+
     static string fsuperId(string obec, string okrsek)
     {
         return obec + "-" + okrsek;
     }
+
     class Okrsek
     {
         public int id;
@@ -100,7 +119,9 @@ class VotingSystems
         public Tuple<int, int> relativeMapPoint;
         public int[] votesParties = new int[N_PARTIES + 1];
         public string superId;
-        
+        public int krajID;
+        public int color;
+
         private void DetermineStatus()
         {
             if (obec == OBCE_ZAHRA)
@@ -112,6 +133,7 @@ class VotingSystems
                 status = Status.SPACIAL;
             }
         }
+
 
         public Okrsek(int id, int obec, int okrsek)
         {
@@ -135,12 +157,12 @@ class VotingSystems
                 return false;
             }
         }
-        
+
         public void AddVote(int party, int votes)
         {
             votesParties[party] += votes;
         }
-        
+
         public void SetRelativeLocation(int width, int height, int[] extremes)
         {
             if (this.status == Status.LOCAL)
@@ -149,8 +171,8 @@ class VotingSystems
                 int heightEx = extremes[3] - extremes[2];
 
                 int divider;
-                
-                if (heightEx/height < widthEx/width)
+
+                if (heightEx / height < widthEx / width)
                 {
                     divider = heightEx;
                 }
@@ -158,6 +180,7 @@ class VotingSystems
                 {
                     divider = widthEx;
                 }
+
                 this.relativeMapPoint = new Tuple<int, int>(
                     width - (mapPoint.Item1 - extremes[0]) * width / divider,
                     (mapPoint.Item2 - extremes[2]) * height / divider);
@@ -170,7 +193,7 @@ class VotingSystems
         FileStream votingDataStream = File.Open("pst4p.csv", FileMode.Open);
         StreamReader votingDataReader = new StreamReader(votingDataStream);
 
-        int maxId = N_OKRSKY + 1; 
+        int maxId = N_OKRSKY + 1;
         Okrsek[] votingData = new Okrsek[maxId];
 
 
@@ -180,11 +203,11 @@ class VotingSystems
         while ((line = votingDataReader.ReadLine()) != null)
         {
             string[] data = line.Split(',');
-            int id = int.Parse(data[(int)DataNames.ID_OKRSKY]);
-            int party = int.Parse(data[(int)DataNames.KSTRANA]);
-            int votes = int.Parse(data[(int)DataNames.POC_HLASU]);
-            int obec = int.Parse(data[(int)DataNames.OBEC]);
-            int okrsek = int.Parse(data[(int)DataNames.OKRSEK]);
+            int id = int.Parse(data[(int) DataNames.ID_OKRSKY]);
+            int party = int.Parse(data[(int) DataNames.KSTRANA]);
+            int votes = int.Parse(data[(int) DataNames.POC_HLASU]);
+            int obec = int.Parse(data[(int) DataNames.OBEC]);
+            int okrsek = int.Parse(data[(int) DataNames.OKRSEK]);
 
             if (id > maxId)
             {
@@ -202,6 +225,7 @@ class VotingSystems
             {
                 votingData[id] = new Okrsek(id, obec, okrsek);
             }
+
             votingData[id].AddVote(party, votes);
         }
 
@@ -237,7 +261,7 @@ class VotingSystems
             this.mapPoint = mapPoint;
             this.superId2 = superId;
         }
-        
+
         public void AddSuperId(string superId)
         {
             this.superId2 = superId;
@@ -250,10 +274,12 @@ class VotingSystems
                 Console.WriteLine("Error: Location already used" + superId);
                 return mapPoint;
             }
+
             used = true;
             return mapPoint;
         }
     }
+
     static IDictionary<string, Location> CreateOkrskyMapData()
     {
         //open map_data.txt file
@@ -289,22 +315,23 @@ class VotingSystems
             string[] position = positionString.Split(' ');
 
             Tuple<int, int> positionXY;
-            
+
             try
             {
-                 positionXY =
-                    new Tuple<int, int>((int)float.Parse(position[0]), (int)float.Parse(position[1]));
+                positionXY =
+                    new Tuple<int, int>((int) float.Parse(position[0]), (int) float.Parse(position[1]));
             }
             catch (Exception)
             {
-                throw new Exception("Error in map_data.txt file, wrong position format " + positionString + " " + okrsek + " " + obec + " " + obec2 + " counter " + counter);
+                throw new Exception("Error in map_data.txt file, wrong position format " + positionString + " " +
+                                    okrsek + " " + obec + " " + obec2 + " counter " + counter);
             }
-            
-           
+
+
 
             mapData.Add(superId, new Location(positionXY, superId));
-            
-            
+
+
             if (obec2Exists)
             {
                 string superId2 = fsuperId(obec2, okrsek);
@@ -316,12 +343,12 @@ class VotingSystems
         }
 
         mapDataReader.Close();
-        
-        
-    return mapData;
+
+
+        return mapData;
     }
 
-    static Okrsek[] ConnectData(Okrsek[] votingData,IDictionary<string, Location> mapData, bool verbose)
+    static Okrsek[] ConnectData(Okrsek[] votingData, IDictionary<string, Location> mapData, bool verbose)
     {
         //Connect data
         for (int i = 1; i < votingData.Length; i++)
@@ -339,10 +366,12 @@ class VotingSystems
                     {
                         Console.WriteLine("Error: Location not found " + superId);
                     }
+
                     votingData[i].status = Status.NOT_FOUND;
                 }
             }
         }
+
         return votingData;
     }
 
@@ -350,13 +379,15 @@ class VotingSystems
     {
         IList<string> missingLocation = new List<string>();
         int counter = 0;
-        foreach (var okrsek in votingData) {
+        foreach (var okrsek in votingData)
+        {
             if (okrsek != null)
             {
                 if (okrsek.status == Status.NOT_FOUND)
                 {
                     counter++;
-                    missingLocation.Add("Error: Okrsek " + okrsek.id + " " + okrsek.obec + " " + okrsek.okrsek + " do not have location");
+                    missingLocation.Add("Error: Okrsek " + okrsek.id + " " + okrsek.obec + " " + okrsek.okrsek +
+                                        " do not have location");
                 }
             }
         }
@@ -368,6 +399,7 @@ class VotingSystems
                 Console.WriteLine(missing);
             }
         }
+
         Console.WriteLine("Missing locations: " + counter + " out of " + votingData.Length);
     }
 
@@ -380,25 +412,31 @@ class VotingSystems
             counter_n++;
             if (!location.used)
             {
-                if(verbose){Console.WriteLine("Error: Location " + location.superId + " " + location.superId2 + "  not used");}
+                if (verbose)
+                {
+                    Console.WriteLine("Error: Location " + location.superId + " " + location.superId2 + "  not used");
+                }
+
                 counter++;
             }
         }
+
         Console.WriteLine("Locations not used: " + counter + " of " + counter_n);
     }
-    
+
     static void CheckDataGood(Okrsek[] votingData, IDictionary<string, Location> locations, bool verbose)
     {
         CheckDataAllHaveLocation(votingData, verbose);
         CheckLocationsAllHaveData(locations, verbose);
     }
-    static int[] findExtremes(Okrsek[] votingData)
+
+    static int[] FindExtremes(Okrsek[] votingData)
     {
         int maxX = votingData[1].mapPoint.Item1;
         int minX = votingData[1].mapPoint.Item1;
         int maxY = votingData[1].mapPoint.Item2;
         int minY = votingData[1].mapPoint.Item2;
-        for (int i = 1; i < N_OKRSKY ; i++)
+        for (int i = 1; i < N_OKRSKY; i++)
         {
             if (votingData[i].status == Status.LOCAL)
             {
@@ -423,8 +461,9 @@ class VotingSystems
                 }
             }
         }
-        int[] extremes = new int[4]{maxX, minX, maxY, minY};
-        return extremes;  
+
+        int[] extremes = new int[4] {maxX, minX, maxY, minY};
+        return extremes;
     }
 
     static void calculateVotes(Okrsek[] votingData)
@@ -432,40 +471,284 @@ class VotingSystems
         //Add all votes to one array
         int[] votesAll = new int[N_PARTIES + 1];
         int max_id = N_OKRSKY;
-        for(int i = 0; i < votingData.Length; i++)
+        for (int i = 0; i < votingData.Length; i++)
         {
-            for(int j = 1; j < N_PARTIES + 1; j++)
+            for (int j = 1; j < N_PARTIES + 1; j++)
             {
                 votesAll[j] += votingData[i].votesParties[j];
             }
         }
-        
+
         //Make sum of all votes
-        
+
         int sumVotes = 0;
-        for(int i = 1; i < N_PARTIES + 1; i++)
+        for (int i = 1; i < N_PARTIES + 1; i++)
         {
             sumVotes += votesAll[i];
         }
-        
+
         Console.WriteLine("Sum of all votes: " + sumVotes);
 
         //Print all votes
-        for(int i = 1; i < N_PARTIES + 1; i++)
+        for (int i = 1; i < N_PARTIES + 1; i++)
         {
             Console.WriteLine("{0}:{1}", i, votesAll[i]);
         }
-        
-        int count = 0; 
-        for (int i = 1; i < votingData.Length ; i++)
+
+        int count = 0;
+        for (int i = 1; i < votingData.Length; i++)
         {
             if (votingData[i].mapPoint != null)
             {
                 count++;
             }
         }
+
         Console.WriteLine(count);
     }
+
+    static void CreateMap(Okrsek[] votingData, int map_width, int map_height)
+    {
+        Bitmap bitmap = new Bitmap(map_width + 1, map_height + 1);
+
+        for (int i = 1; i < N_OKRSKY; i++)
+        {
+            if (votingData[i].status == Status.LOCAL)
+            {
+                bitmap.SetPixel(votingData[i].relativeMapPoint.Item1, votingData[i].relativeMapPoint.Item2,
+                    Color.FromArgb(255, 2, 229));
+            }
+        }
+
+        //Draw bitmap
+        bitmap.Save("map.bmp");
+    }
+
+    static void CalculateElectionCz2021PS(IDictionary<int, Kraj> kraje, int mandates)
+    {
+        //Number of mandates in each kraj
+        if (mandates < 1)
+        {
+            throw new Exception("Error: Mandates must be greater than 0");
+            return;
+        }
+
+        int sumVotes = 0;
+        foreach (var kraj in kraje.Values)
+        {
+            sumVotes += kraj.sumVotes;
+        }
+
+
+
+        int republikoveMandatoveCislo = sumVotes / mandates;
+
+        IDictionary<int, int> krajeMandates = new Dictionary<int, int>();
+        IDictionary<int, int> votesOver = new Dictionary<int, int>();
+
+        int mandatesUsed = 0;
+        foreach (var kraj in kraje.Values)
+        {
+
+            krajeMandates.Add(kraj.id, kraj.sumVotes / republikoveMandatoveCislo);
+            mandatesUsed += kraj.sumVotes / republikoveMandatoveCislo;
+
+            votesOver.Add(kraj.id, kraj.sumVotes % republikoveMandatoveCislo);
+        }
+
+        //Dividing leftovers to krajes
+
+        if (mandatesUsed < mandates)
+        {
+            int leftovers = mandates - mandatesUsed;
+            var sortedLeftovers = votesOver.OrderByDescending(x => x.Value).ToList();
+            foreach (var kraj in sortedLeftovers)
+            {
+                if (leftovers <= 0)
+                {
+                    break;
+                }
+                else
+                {
+                    krajeMandates[kraj.Key]++;
+                    leftovers--;
+                }
+
+            }
+
+        }
+
+        //CheckParities with 5 % votes
+
+        int[] votesPartiesSum = new int[N_PARTIES + 1];
+        foreach (var kraj in kraje.Values)
+        {
+            for (int i = 1; i < N_PARTIES + 1; i++)
+            {
+                votesPartiesSum[i] += kraj.votesParties[i];
+            }
+        }
+
+
+        int[] partiesStatus = new int[N_PARTIES + 1];
+
+        for (int i = 0; i < N_PARTIES + 1; i++)
+        {
+            if (votesPartiesSum[i] * 100 / sumVotes > 5)
+            {
+                partiesStatus[i] = 1;
+            }
+            else
+            {
+                partiesStatus[i] = 0;
+            }
+        }
+
+
+        int[] partiesMandates = new int[N_PARTIES + 1];
+        int[] partiesVotesLeftovers = new int[N_PARTIES + 1];
+        foreach (var kraj in kraje.Values)
+        {
+            int sumVotesOkParties = 0;
+            for (int i = 1; i < N_PARTIES + 1; i++)
+            {
+                if (partiesStatus[i] == 1)
+                {
+                    sumVotesOkParties += kraj.votesParties[i];
+                }
+            }
+
+            int kvota = sumVotesOkParties / (krajeMandates[kraj.id] + 2); //Imperialliho kvota
+
+            for (int i = 1; i < N_PARTIES + 1; i++)
+            {
+                if (partiesStatus[i] == 1)
+                {
+                    partiesMandates[i] += kraj.votesParties[i] / kvota;
+                    partiesVotesLeftovers[i] += kraj.votesParties[i] % kvota;
+                }
+            }
+
+        }
+
+        mandatesUsed = partiesMandates.Sum();
+
+        if (mandatesUsed > mandates)
+        {
+
+            for (int i = 1; i < N_PARTIES + 1; i++)
+            {
+
+                Console.WriteLine(partiesMandates[i]);
+            }
+            Console.WriteLine("Not finished yet...");
+            mandates = mandatesUsed;
+        }
+
+        int sumLeftovers = partiesVotesLeftovers.Sum();
+        int republikovakvota = (sumLeftovers) / (mandates - mandatesUsed + 1);
+
+        for (int i = 1; i < N_PARTIES + 1; i++)
+        {
+            if (partiesStatus[i] == 1)
+            {
+                partiesMandates[i] += partiesVotesLeftovers[i] / republikovakvota;
+                partiesVotesLeftovers[i] += partiesVotesLeftovers[i] % republikovakvota;
+            }
+        }
+
+        mandatesUsed = partiesMandates.Sum();
+        int mandatesLeft = mandates - mandatesUsed;
+
+        Dictionary<int, int> leftoversVotesParitesDic = new Dictionary<int, int>();
+        for (int i = 1; i < N_PARTIES + 1; i++)
+        {
+            if (partiesStatus[i] == 1)
+            {
+                leftoversVotesParitesDic.Add(i, partiesVotesLeftovers[i]);
+            }
+        }
+
+        var leftoversVotesParites = leftoversVotesParitesDic.OrderByDescending(x => x.Value).ToList();
+        foreach (var party in leftoversVotesParites)
+            {
+                if (mandatesLeft > 0)
+                {
+                    partiesMandates[party.Key]++;
+                    mandatesLeft--;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+
+        //Print results
+        for (int i = 1; i < N_PARTIES + 1; i++)
+        {
+
+            Console.WriteLine(partiesMandates[i]);
+        }
+    }
+    
+
+    class Kraj
+    {
+        public int id;
+        public int color;
+        public IList<Okrsek> okrsky;
+        public int[] votesParties = new int[N_PARTIES + 1];
+        public int sumVotes = 0;
+        public Kraj (int id)
+        {
+            this.id = id;
+            this.color = id;
+            this.okrsky = new List<Okrsek>();
+        }
+        public void AddOkrsek(Okrsek okrsek)
+        {
+            this.okrsky.Add(okrsek);
+            for(int i = 1; i < N_PARTIES + 1; i++)
+            {
+                this.votesParties[i] += okrsek.votesParties[i];
+                this.sumVotes += okrsek.votesParties[i];
+            }
+        }
+        
+        
+        
+        
+    }
+    static IDictionary<int, Kraj> CreateKrajData(Okrsek[] votingData)
+    {
+        Bitmap map_kraje = new Bitmap("map_kraje.bmp");
+
+
+        IDictionary<int, Kraj> kraje = new Dictionary<int, Kraj>();
+
+
+        //Tohle není pěkné, předělat pls, ale funguje
+        for (int i = 1; i < N_OKRSKY; i++)
+        {
+            if (votingData[i].status == Status.LOCAL)
+            {
+
+                int kraj = map_kraje
+                    .GetPixel(votingData[i].relativeMapPoint.Item1, votingData[i].relativeMapPoint.Item2).R;
+                if (!kraje.ContainsKey(kraj))
+                {
+                    kraje.Add(kraj, new Kraj(kraj));
+                }
+
+                kraje[kraj].AddOkrsek(votingData[i]);
+            }
+        }
+
+        return kraje;
+    }
+    
+   
     
     
     public static void Main(string[] args)
@@ -488,7 +771,7 @@ class VotingSystems
         }
 
 
-        int [] extremes = findExtremes(votingData);
+        int [] extremes = FindExtremes(votingData);
         Console.WriteLine("This are extremes: " + extremes[0] + " " + extremes[1] + " " + extremes[2] + " " + extremes[3]);
         //Find maximum positions of okrseks to draw good map
         
@@ -502,49 +785,14 @@ class VotingSystems
             votingData[i].SetRelativeLocation(map_width, map_height, extremes);
         }
         
-        Bitmap bitmap = new Bitmap(map_width + 1, map_height + 1);
-        
-        for (int i = 1; i < N_OKRSKY; i++)
-        {
-            if (votingData[i].status == Status.LOCAL)
-            {
-                bitmap.SetPixel(votingData[i].relativeMapPoint.Item1, votingData[i].relativeMapPoint.Item2, Color.FromArgb(255, 2, 229));
-            }
-        }
-        
-        //Draw bitmap
-        bitmap.Save("map.bmp");
+        CreateMap(votingData, map_width, map_height);
         
         //Open map of kraje
-        Bitmap map_kraje = new Bitmap("map_kraje.bmp");
+
+        IDictionary<int, Kraj> kraje = CreateKrajData(votingData); 
         
-        
-        IDictionary<int, IList<Okrsek>> kraje = new Dictionary<int, IList<Okrsek>>();
-        
-        
-        //Tohle není pěkné, předělat pls, ale funguje
-        for(int i = 1; i < N_OKRSKY; i++)
-        {
-            if(votingData[i].status == Status.LOCAL)
-            {
-                
-                int kraj = map_kraje.GetPixel(votingData[i].relativeMapPoint.Item1, votingData[i].relativeMapPoint.Item2).R;
-                if(!kraje.ContainsKey(kraj))
-                {
-                    kraje.Add(kraj, new List<Okrsek>());
-                }
-                kraje[kraj].Add(votingData[i]);
-            }
-        }
-
-        foreach (var kraj in kraje.Values)
-        {
-            calculateVotes(kraj.ToArray());
-        }
-
-
-
-
+        CalculateElectionCz2021PS(kraje, 200);
+              
 
         //Kraje
     }
