@@ -96,12 +96,41 @@ class VotingSystems
     {
         int id;
         string name;
-        int number_of_mandates = 0;
-        Party(int id, string name)
+        string leader;
+        public bool coalition;
+        int n_coalition_parties;
+        int mandates = 0;
+        public int allvotes = 0;
+        public IDictionary<int, int> mandatesInKraj = new Dictionary<int, int>();
+        public IDictionary<int, int> votesInKraj = new Dictionary<int, int>();
+        public bool isSuccesfull;
+        
+        public Party(int id, string name, string leader, int n_coalition_parties, bool coalition)
         {
             this.id = id;
             this.name = name;
+            this.leader = leader;
+            this.n_coalition_parties = n_coalition_parties;
+            this.coalition = coalition;
         }
+    }
+
+    static Party[] LoadParties(string fileLocation)
+    {
+        StreamReader file = new StreamReader(fileLocation);
+        string line;
+        Party[] parties = new Party[N_PARTIES + 1];
+        int id = 1;
+        while ((line = file.ReadLine()) != null)
+        {
+            string[] parts = line.Split("\t");
+            parties[id] = new Party(Int32.Parse(parts[0]), parts[1], parts[2], Int32.Parse(parts[3]), parts[3] == "1");
+            id++;
+        }
+        
+        file.Close();
+        
+        return parties;
     }
 
     static string fsuperId(string obec, string okrsek)
@@ -188,9 +217,9 @@ class VotingSystems
         }
     }
 
-    static Okrsek[] CreateOkrskyData()
+    static Okrsek[] CreateOkrskyData(string fileLocation)
     {
-        FileStream votingDataStream = File.Open("pst4p.csv", FileMode.Open);
+        FileStream votingDataStream = File.Open(fileLocation, FileMode.Open);
         StreamReader votingDataReader = new StreamReader(votingDataStream);
 
         int maxId = N_OKRSKY + 1;
@@ -507,7 +536,7 @@ class VotingSystems
         Console.WriteLine(count);
     }
 
-    static void CreateMap(Okrsek[] votingData, int map_width, int map_height)
+    static void CreateMap(Okrsek[] votingData, int map_width, int map_height, string fileLocation)
     {
         Bitmap bitmap = new Bitmap(map_width + 1, map_height + 1);
 
@@ -521,7 +550,7 @@ class VotingSystems
         }
 
         //Draw bitmap
-        bitmap.Save("map.bmp");
+        bitmap.Save(fileLocation);
     }
 
     static void CalculateElectionCz2021PS(IDictionary<int, Kraj> kraje, int mandates)
@@ -757,15 +786,18 @@ class VotingSystems
         const bool create_new_data = true;
         const bool save_data = true;
         const bool verbose = false;
+        const string parties_data_file = "nazvy_stran.txt";
+        const string okrsky_data_file = "pst4p.csv";
         
         Okrsek[] votingData;
         
-        
+        Party[] parties = LoadParties(parties_data_file); 
+
         if (create_new_data)
         {
             
             IDictionary<string, Location> mapData = CreateOkrskyMapData();
-            votingData = CreateOkrskyData();
+            votingData = CreateOkrskyData(okrsky_data_file);
             ConnectData(votingData, mapData, verbose);
             CheckDataGood(votingData, mapData, verbose);
         }
@@ -785,7 +817,9 @@ class VotingSystems
             votingData[i].SetRelativeLocation(map_width, map_height, extremes);
         }
         
-        CreateMap(votingData, map_width, map_height);
+        const string map_file = "map.bmp";
+        
+        CreateMap(votingData, map_width, map_height, map_file);
         
         //Open map of kraje
 
