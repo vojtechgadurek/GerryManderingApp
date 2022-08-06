@@ -1,12 +1,12 @@
-#Dokumentace - Aplikace pro výpočet voleb 
+#  Dokumentace - Aplikace pro výpočet voleb 
 
-##Autor - Vojtěch Gadurek 
+## Autor - Vojtěch Gadurek 
 
-##Uživatelská příručka 
+## Uživatelská příručka 
 
-###Popis Popis Aplikace umožňuje uživateli zkusit si jaké rozdíly způsobují volební metody na datech z voleb do poslanecké sněmovny v roce 2021. A to možností si vybrat z dvou metod a to metody využívané v roce 2021 a staré metody z roku 2017. Dále je možné změnit volební klauzule, počet udělovaných mandátů a nakonec i velikost a počet krajů a to i jaké okrsky jsou do v nich obsaženy. 
+### Popis Popis Aplikace umožňuje uživateli zkusit si jaké rozdíly způsobují volební metody na datech z voleb do poslanecké sněmovny v roce 2021. A to možností si vybrat z dvou metod a to metody využívané v roce 2021 a staré metody z roku 2017. Dále je možné změnit volební klauzule, počet udělovaných mandátů a nakonec i velikost a počet krajů a to i jaké okrsky jsou do v nich obsaženy. 
 
-###Upozornění na nepřesnosti Program není dokonalý. Největší odchylkou od reality je špatný výpočet v D´Hondtové metodě, který neobsahuje krajouvou klauzuli.
+### Upozornění na nepřesnosti Program není dokonalý. Největší odchylkou od reality je špatný výpočet v D´Hondtové metodě, který neobsahuje krajouvou klauzuli.
 
 Dále v datech chybí k dnešku 127 okrsků, která se nezobrazují na mapě.
 
@@ -26,7 +26,7 @@ poslední hranice
 Po vyplnění je možné spustit program.
 ```
 
-####Kreslení mapy
+#### Kreslení mapy
 
 Program vždy vygeneruje mapu okresků v daných rozměrech. Je možno ji najít pod názvem map.btm. Tento obrázek je možné pomocí oblibeného grafického editoru, použít jako podklad pro nakreslení mapy krajů.
 
@@ -34,21 +34,21 @@ Mapa se kreslí následujicím způsobem, každý kraj musí mít svojí jednu b
 
 Obrázek musí mít zadané rozměry.
 
-###Nahrazení dat
+### Nahrazení dat
 
-####Změna okrskových dat
+#### Změna okrskových dat
 
 Zdrojem dat je https://www.volby.cz/opendata/opendata.html - a jejich autorem je český statictický úřad.
 
 Ta je možna změnit pomocí nahrání jiného souboru s názvem "pst4p.csv", který musí obsahovat následujicí sloupce ID_OKRSKY,TYP_FORM,OPRAVA,CHYBA,OKRES,OBEC,OKRSEK,KC_1,KSTRANA,POC_HLASU.
 
-####Změna kandidujicích stran
+#### Změna kandidujicích stran
 
 Zdrojem dat je https://www.seznamzpravy.cz/clanek/volby-2021-kdo-kandiduje-a-koho-volit-173806
 
 To je možné učnit pomocí souboru názvy_stran.txt, je nutné aby první ID byla 1 a dále se zvedala po jedné. Formát dat je následujicí: ID\tNázev strany\tJméno republikového lídra\tpočet stran v koalici.
 
-####Změna pozic okrsků
+#### Změna pozic okrsků
 
 Zdrojem primárních dat je https://data.gov.cz/datov%C3%A1-sada?iri=https%3A%2F%2Fdata.gov.cz%2Fzdroj%2Fdatov%C3%A9-sady%2F00025712%2F885a03d4d6fe73adda96ba9b822680b7
 
@@ -64,11 +64,11 @@ municipální_číslo -Volitelné
       -Mezery
 ```   
    
-##Architektura aplikace 
+## Architektura aplikace 
 
-###Popis Aplikace se dělí na tři části.
+### Popis Aplikace se dělí na tři části.
 
-####Zpracovánídat Funkce LoadParties nahraje data o stranách
+#### Zpracovánídat Funkce LoadParties nahraje data o stranách
 
 voting_data obsahuje volební data z jednotlivých okrsků
 
@@ -78,23 +78,23 @@ Dále je zpracováná mapa a dle ní vytvořeny kraje. Každý kraj má unikatn�
 
 Do krajů jsou nahrány data z okrsků.
 
-####Výpočet voleb 
+#### Výpočet voleb 
 
 Podle dané zvolené metody je zvolena metoda. Výsledky jsou uloženy do jednotlivých stran.
 
-####Tisk výsledků Vysledky jsou printovány z jednotlivých stran.
+#### Tisk výsledků Vysledky jsou printovány z jednotlivých stran.
 
 
-###Třídy
+### Třídy
 
-####Okrsek
+#### Okrsek
 
-####Kraj
+#### Kraj
 
-####Skrutinum
+#### Skrutinum
 
 počítá jednotlivá skrutinia, hlavně v metodě 2021 
 
-####Strana 
+#### Strana 
 
-####Lokace Pozice na mapě jsou ořezány na int. Větší přesnost se zdála nadbytečná.
+#### Lokace Pozice na mapě jsou ořezány na int. Větší přesnost se zdála nadbytečná.
