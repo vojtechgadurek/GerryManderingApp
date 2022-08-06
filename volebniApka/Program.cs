@@ -992,7 +992,18 @@ class VotingSystems
 
         MoveDataBetweenKrajeAndParties(parties, kraje);
 
-        CalculateElectionCz2017Ps(kraje, mandates, parties, percentageNeeded);
+        if (votingMethod == 2021)
+        {
+            CalculateElectionCz2021Ps(kraje, mandates, parties, percentageNeeded);
+        }
+        else if(votingMethod == 2017)
+        {
+            CalculateElectionCz2017Ps(kraje, mandates, parties, percentageNeeded);
+        }
+        else
+        {
+            throw new Exception("Wrong voting method");
+        }
 
         PrintResults(parties);
 

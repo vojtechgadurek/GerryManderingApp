@@ -21,7 +21,7 @@ Dále nefunguje pokud jsou rozměry mapy rozdílné.
 ###Používání programu
 Program očekává vyplnění souboru settings.txt v následujicím formátu.
 ```
-map_file_name = *.btm - název souboru s mapou kraje
+map_file_name = *.bmp - název souboru s mapou kraje
 height = N - výška mapy v pixelech
 width = N - šířka mapy v pixelech
 voting_method = N - na výběr je z let 2017 a 2021
@@ -81,7 +81,8 @@ voting_data obsahuje volební data z jednotlivých okrsků
 Data jsou validována.
 
 Dále je zpracováná mapa a dle ní vytvořeny kraje. Každý kraj má unikatní barvu, která
-je jeho identifikátorem.
+je jeho identifikátorem. Okrsek je přiřazen k nejbližšímu pixelu na mapě a dle jeho barvy, zvolí
+svůj kraj.
 
 Do krajů jsou nahrány data z okrsků.
 
