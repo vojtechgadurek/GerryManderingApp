@@ -4,9 +4,12 @@
 
 ## Uživatelská příručka 
 
-### Popis Popis Aplikace umožňuje uživateli zkusit si jaké rozdíly způsobují volební metody na datech z voleb do poslanecké sněmovny v roce 2021. A to možností si vybrat z dvou metod a to metody využívané v roce 2021 a staré metody z roku 2017. Dále je možné změnit volební klauzule, počet udělovaných mandátů a nakonec i velikost a počet krajů a to i jaké okrsky jsou do v nich obsaženy. 
+### Popis
+Aplikace umožňuje uživateli zkusit si jaké rozdíly způsobují volební metody na datech z voleb do poslanecké sněmovny v roce 2021. A to možností si vybrat z dvou metod a to metody využívané v roce 2021 a staré metody z roku 2017. Dále je možné změnit volební klauzule, počet udělovaných mandátů a nakonec i velikost a počet krajů a to i jaké okrsky jsou do v nich obsaženy. 
 
-### Upozornění na nepřesnosti Program není dokonalý. Největší odchylkou od reality je špatný výpočet v D´Hondtové metodě, který neobsahuje krajouvou klauzuli.
+### Upozornění na nepřesnosti 
+
+Program není dokonalý. Největší odchylkou od reality je špatný výpočet v D´Hondtové metodě, který neobsahuje krajouvou klauzuli.
 
 Dále v datech chybí k dnešku 127 okrsků, která se nezobrazují na mapě.
 
