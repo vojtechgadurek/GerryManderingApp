@@ -70,5 +70,37 @@ okrskové_číslo
 municipální_číslo -Volitelné
       -Mezery
 ```
+##Architektura aplikace
+###Popis
+Aplikace se dělí na tři části.
+####Zpracovánídat
+Funkce LoadParties nahraje data o stranách
+
+voting_data obsahuje volební data z jednotlivých okrsků
+
+Data jsou validována.
+
+Dále je zpracováná mapa a dle ní vytvořeny kraje. Každý kraj má unikatní barvu, která
+je jeho identifikátorem.
+
+Do krajů jsou nahrány data z okrsků.
+
+####Výpočet voleb
+Podle dané zvolené metody je zvolena metoda. Výsledky jsou uloženy do jednotlivých stran.
+####Tisk výsledků
+Vysledky jsou printovány z jednotlivých stran.
+
+###Třídy
+####Okrsek
+####Kraj
+####Skrutinum
+počítá jednotlivá skrutinia, hlavně v metodě 2021
+####Strana
+####Lokace
+Pozice na mapě jsou ořezány na int. Větší přesnost se zdála nadbytečná.
+
+
+
+
 
       
