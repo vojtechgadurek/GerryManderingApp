@@ -25,22 +25,16 @@ class VotingSystems
     #region Constants
 
 
-    const int N_OKRSKY = 14886 + 1;
+    const int NOkrsky = 14886 + 1;
 
     //Existuje 111 okrsků v zahraničí => Pozor na to META: V součastnosti ignorovány
-    const int N_OKRSKY_ZAHRA = 111;
+    const int NOkrskyZahra = 111;
 
     //Zahraniční obce mají číslo 999997
 
-    const int OBCE_ZAHRA = 999997;
+    const int ObceZahra = 999997;
 
-    //Pozice zahraničních okrsků
-    const int POZICE_ZAHRA = -1;
-
-    //Pozice nenalezených okrsků
-    const int POZICE_NENALEZEN = 1000;
-
-    static HashSet<string> SPECIAL_OKRSKY = new HashSet<string>()
+    static HashSet<string> _specialOkrsky = new HashSet<string>()
     {
         "500054-1000",
         "532053-0",
@@ -63,7 +57,7 @@ class VotingSystems
 
 
     //Počer stran je 22
-    const int N_PARTIES = 22;
+    const int NParties = 22;
 
     //Covid okrsky
 
@@ -72,7 +66,7 @@ class VotingSystems
     #endregion
 
     #region Enums
-    
+
     enum DataNames
     {
         ID_OKRSKY,
@@ -91,31 +85,34 @@ class VotingSystems
     {
         LOCAL,
         ZAHRA,
-        SPACIAL,
+        SPECIAL,
         NOT_FOUND,
     }
+
     #endregion
-    
+
     #region Structs
+
     class Party
     {
-        int id;
-        string name;
-        string leader;
+        public int id;
+        public string name;
+        public string leader;
         public bool coalition;
-        int n_coalition_parties;
-        int mandates = 0;
+        public int nCoalitionParties;
+        public int mandates = 0;
         public int allvotes = 0;
-        public IDictionary<int, int> mandatesInKraj = new Dictionary<int, int>();
-        public IDictionary<int, int> votesInKraj = new Dictionary<int, int>();
+        public IDictionary<int, int> mandatesKraj = new Dictionary<int, int>();
+        public IDictionary<int, int> votesKraj = new Dictionary<int, int>();
+        public IDictionary<int, int> leftoverVotesKraj = new Dictionary<int, int>();
         public bool isSuccesfull;
 
-        public Party(int id, string name, string leader, int n_coalition_parties, bool coalition)
+        public Party(int id, string name, string leader, int nCoalitionParties, bool coalition)
         {
             this.id = id;
             this.name = name;
             this.leader = leader;
-            this.n_coalition_parties = n_coalition_parties;
+            this.nCoalitionParties = nCoalitionParties;
             this.coalition = coalition;
         }
     }
@@ -125,39 +122,53 @@ class VotingSystems
         public int id;
         public int color;
         public IList<Okrsek> okrsky;
-        public int[] votesParties = new int[N_PARTIES + 1];
-        public int[] mandatesParties = new int[N_PARTIES + 1];
+        public int nParties;
+        public IDictionary<int, int> votesParties;
+        public IDictionary<int, int> mandatesParties;
         public int sumVotes = 0;
         public int mandates;
-        public Kraj (int id)
+
+        public Kraj(int id, int nParties)
         {
             this.id = id;
             this.color = id;
             this.okrsky = new List<Okrsek>();
+            this.votesParties = new Dictionary<int, int>();
+            this.mandatesParties = new Dictionary<int, int>();
+            this.nParties = nParties;
         }
+
         public void AddOkrsek(Okrsek okrsek)
         {
             this.okrsky.Add(okrsek);
-            for(int i = 1; i < N_PARTIES + 1; i++)
+            foreach (var party in okrsek.votesParties)
             {
-                this.votesParties[i] += okrsek.votesParties[i];
-                this.sumVotes += okrsek.votesParties[i];
+                if (this.votesParties.ContainsKey(party.Key))
+                {
+                    this.votesParties[party.Key] += party.Value;
+                }
+                else
+                {
+                    this.votesParties.Add(party.Key, party.Value);
+                }
+
+                this.sumVotes += party.Value;
             }
         }
-        
+
         public void AddMandates(int mandates)
         {
             this.mandates = mandates;
         }
 
-        public void AddMandatesParties(int[] mandatesParties)
+        public void AddMandatesParties(IDictionary<int, int> mandatesParties)
         {
             this.mandatesParties = mandatesParties;
         }
-        
+
     }
-    
-     class Okrsek
+
+    class Okrsek
     {
         public int id;
         public int obec;
@@ -165,30 +176,32 @@ class VotingSystems
         public Status status = Status.NOT_FOUND;
         public Tuple<int, int> mapPoint;
         public Tuple<int, int> relativeMapPoint;
-        public int[] votesParties = new int[N_PARTIES + 1];
+        public IDictionary<int, int> votesParties = new Dictionary<int, int>();
         public string superId;
-        public int krajID;
+        public int krajId;
         public int color;
+        public int nParties;
 
         private void DetermineStatus()
         {
-            if (obec == OBCE_ZAHRA)
+            if (obec == ObceZahra)
             {
                 status = Status.ZAHRA;
             }
-            else if (SPECIAL_OKRSKY.Contains(superId))
+            else if (_specialOkrsky.Contains(superId))
             {
-                status = Status.SPACIAL;
+                status = Status.SPECIAL;
             }
         }
 
 
-        public Okrsek(int id, int obec, int okrsek)
+        public Okrsek(int id, int obec, int okrsek, int nParties)
         {
             this.id = id;
             this.obec = obec;
             this.okrsek = okrsek;
-            this.superId = fsuperId(obec.ToString(), okrsek.ToString());
+            this.superId = FsuperId(obec.ToString(), okrsek.ToString());
+            this.nParties = nParties;
             DetermineStatus();
         }
 
@@ -208,7 +221,14 @@ class VotingSystems
 
         public void AddVote(int party, int votes)
         {
-            votesParties[party] += votes;
+            if (votesParties.ContainsKey(party))
+            {
+                votesParties[party] += votes;
+            }
+            else
+            {
+                votesParties.Add(party, votes);
+            }
         }
 
         public void SetRelativeLocation(int width, int height, int[] extremes)
@@ -234,11 +254,22 @@ class VotingSystems
                     (mapPoint.Item2 - extremes[2]) * height / divider);
             }
         }
+
+        public void checkAllDeclared()
+        {
+            for (int i = 1; i < nParties + 1; i++)
+            {
+                if (!votesParties.ContainsKey(i))
+                {
+                    votesParties.Add(i, 0);
+                }
+            }
+        }
     }
-    
+
     class Location
     {
-        private Tuple<int, int> mapPoint;
+        private Tuple<int, int> _mapPoint;
         public bool used = false;
         public string superId;
         public string superId2;
@@ -246,7 +277,7 @@ class VotingSystems
         public Location(Tuple<int, int> mapPoint, string superId)
         {
             this.superId = superId;
-            this.mapPoint = mapPoint;
+            this._mapPoint = mapPoint;
             this.superId2 = superId;
         }
 
@@ -255,38 +286,41 @@ class VotingSystems
             this.superId2 = superId;
         }
 
-        public Tuple<int, int> getLocation()
+        public Tuple<int, int> GetLocation()
         {
             if (used)
             {
                 Console.WriteLine("Error: Location already used" + superId);
-                return mapPoint;
+                return _mapPoint;
             }
 
             used = true;
-            return mapPoint;
+            return _mapPoint;
         }
     }
+
     #endregion
 
     #region LoadFuncs
-    static Party[] LoadParties(string fileLocation)
+
+    static IDictionary<int, Party> LoadParties(string fileLocation)
     {
         StreamReader file = new StreamReader(fileLocation);
         string line;
-        Party[] parties = new Party[N_PARTIES + 1];
+        IDictionary<int, Party> parties = new Dictionary<int, Party>();
         while ((line = file.ReadLine()) != null)
         {
             string[] parts = line.Split("\t");
-            parties[Int32.Parse(parts[0])] = new Party(Int32.Parse(parts[0]), parts[1], parts[2], Int32.Parse(parts[3]), parts[3] == "1");
+            parties.Add(Int32.Parse(parts[0]),
+                new Party(Int32.Parse(parts[0]), parts[1], parts[2], Int32.Parse(parts[3]), parts[3] == "1"));
         }
 
         file.Close();
 
         return parties;
     }
-    
-    static string fsuperId(string obec, string okrsek)
+
+    static string FsuperId(string obec, string okrsek)
     {
         return obec + "-" + okrsek;
     }
@@ -296,7 +330,7 @@ class VotingSystems
         FileStream votingDataStream = File.Open(fileLocation, FileMode.Open);
         StreamReader votingDataReader = new StreamReader(votingDataStream);
 
-        int maxId = N_OKRSKY + 1;
+        int maxId = NOkrsky + 1;
         Okrsek[] votingData = new Okrsek[maxId];
 
 
@@ -318,7 +352,7 @@ class VotingSystems
                 return null;
             }
 
-            if (party > N_PARTIES)
+            if (party > NParties)
             {
                 Console.WriteLine("Chyba: Kód strany je větší než počet stran");
                 return null;
@@ -326,7 +360,7 @@ class VotingSystems
 
             if (votingData[id] == null)
             {
-                votingData[id] = new Okrsek(id, obec, okrsek);
+                votingData[id] = new Okrsek(id, obec, okrsek, NParties);
             }
 
             votingData[id].AddVote(party, votes);
@@ -334,6 +368,12 @@ class VotingSystems
 
         votingDataReader.Close();
         votingDataStream.Close();
+
+        for (int i = 1; i < NOkrsky; i++)
+        {
+            votingData[i].checkAllDeclared();
+        }
+
         return votingData;
     }
 
@@ -350,7 +390,7 @@ class VotingSystems
 
         return translator;
     }
-    
+
 
     static IDictionary<string, Location> CreateOkrskyMapData()
     {
@@ -361,7 +401,7 @@ class VotingSystems
         // Obec
         // Obec2(optional)
         // Freespace "      "
-        const string FREESPACE = "      ";
+        const string freespace = "      ";
         IDictionary<string, Location> mapData = new Dictionary<string, Location>();
 
         FileStream mapDataStream = File.Open("map_data.txt", FileMode.Open);
@@ -376,21 +416,21 @@ class VotingSystems
             string obec2 = mapDataReader.ReadLine();
 
             bool obec2Exists = false; //optional
-            if (obec2 != FREESPACE)
+            if (obec2 != freespace)
             {
                 obec2Exists = true;
                 mapDataReader.ReadLine();
             }
 
-            string superId = fsuperId(obec, okrsek);
+            string superId = FsuperId(obec, okrsek);
 
             string[] position = positionString.Split(' ');
 
-            Tuple<int, int> positionXY;
+            Tuple<int, int> positionXy;
 
             try
             {
-                positionXY =
+                positionXy =
                     new Tuple<int, int>((int) float.Parse(position[0]), (int) float.Parse(position[1]));
             }
             catch (Exception)
@@ -401,13 +441,13 @@ class VotingSystems
 
 
 
-            mapData.Add(superId, new Location(positionXY, superId));
+            mapData.Add(superId, new Location(positionXy, superId));
 
 
             if (obec2Exists)
             {
-                string superId2 = fsuperId(obec2, okrsek);
-                mapData.Add(superId2, new Location(positionXY, superId));
+                string superId2 = FsuperId(obec2, okrsek);
+                mapData.Add(superId2, new Location(positionXy, superId));
                 mapData[superId].AddSuperId(superId2);
             }
 
@@ -430,7 +470,7 @@ class VotingSystems
                 string superId = votingData[i].superId;
                 if (mapData.ContainsKey(superId))
                 {
-                    votingData[i].AddLocation(mapData[superId].getLocation());
+                    votingData[i].AddLocation(mapData[superId].GetLocation());
                 }
                 else
                 {
@@ -477,11 +517,11 @@ class VotingSystems
 
     static void CheckLocationsAllHaveData(IDictionary<string, Location> locations, bool verbose)
     {
-        int counter_n = 0;
+        int counterN = 0;
         int counter = 0;
         foreach (var location in locations.Values)
         {
-            counter_n++;
+            counterN++;
             if (!location.used)
             {
                 if (verbose)
@@ -493,7 +533,7 @@ class VotingSystems
             }
         }
 
-        Console.WriteLine("Locations not used: " + counter + " of " + counter_n);
+        Console.WriteLine("Locations not used: " + counter + " of " + counterN);
     }
 
     static void CheckDataGood(Okrsek[] votingData, IDictionary<string, Location> locations, bool verbose)
@@ -501,6 +541,7 @@ class VotingSystems
         CheckDataAllHaveLocation(votingData, verbose);
         CheckLocationsAllHaveData(locations, verbose);
     }
+
     #endregion
 
     static int[] FindExtremes(Okrsek[] votingData)
@@ -509,7 +550,7 @@ class VotingSystems
         int minX = votingData[1].mapPoint.Item1;
         int maxY = votingData[1].mapPoint.Item2;
         int minY = votingData[1].mapPoint.Item2;
-        for (int i = 1; i < N_OKRSKY; i++)
+        for (int i = 1; i < NOkrsky; i++)
         {
             if (votingData[i].status == Status.LOCAL)
             {
@@ -539,52 +580,11 @@ class VotingSystems
         return extremes;
     }
 
-    static void calculateVotes(Okrsek[] votingData)
+    static void CreateMap(Okrsek[] votingData, int mapWidth, int mapHeight, string fileLocation)
     {
-        //Add all votes to one array
-        int[] votesAll = new int[N_PARTIES + 1];
-        int max_id = N_OKRSKY;
-        for (int i = 0; i < votingData.Length; i++)
-        {
-            for (int j = 1; j < N_PARTIES + 1; j++)
-            {
-                votesAll[j] += votingData[i].votesParties[j];
-            }
-        }
+        Bitmap bitmap = new Bitmap(mapWidth + 1, mapHeight + 1);
 
-        //Make sum of all votes
-
-        int sumVotes = 0;
-        for (int i = 1; i < N_PARTIES + 1; i++)
-        {
-            sumVotes += votesAll[i];
-        }
-
-        Console.WriteLine("Sum of all votes: " + sumVotes);
-
-        //Print all votes
-        for (int i = 1; i < N_PARTIES + 1; i++)
-        {
-            Console.WriteLine("{0}:{1}", i, votesAll[i]);
-        }
-
-        int count = 0;
-        for (int i = 1; i < votingData.Length; i++)
-        {
-            if (votingData[i].mapPoint != null)
-            {
-                count++;
-            }
-        }
-
-        Console.WriteLine(count);
-    }
-
-    static void CreateMap(Okrsek[] votingData, int map_width, int map_height, string fileLocation)
-    {
-        Bitmap bitmap = new Bitmap(map_width + 1, map_height + 1);
-
-        for (int i = 1; i < N_OKRSKY; i++)
+        for (int i = 1; i < NOkrsky; i++)
         {
             if (votingData[i].status == Status.LOCAL)
             {
@@ -596,60 +596,61 @@ class VotingSystems
         //Draw bitmap
         bitmap.Save(fileLocation);
     }
-    
+
 
     class Skrutinium
     {
         public int parties;
-        public int[] votes;
+        public IDictionary<int, int> votes;
         public int mandates;
         public int leftOverMandates;
-        public int[] mandatesParties;
+        public IDictionary<int, int> mandatesParties;
         public IDictionary<int, int> leftOverVotes;
         public int kvotaNumber;
         public int kvota;
         public int allVotes;
         public int mandatesUsed;
-        private bool mandateOverflowOk;
-        private bool mandateUnderflowOk;
+        private bool _mandateOverflowOk;
+        private bool _mandateUnderflowOk;
 
-        public Skrutinium(int parties, int[] votes, int mandates, int kvotaNumber, bool mandateOverflowOk, bool mandateUnderflowOk)
+        public Skrutinium(IDictionary<int, int> votes, int mandates, int kvotaNumber, bool mandateOverflowOk,
+            bool mandateUnderflowOk)
         {
-            this.parties = parties;
             this.votes = votes;
             this.mandates = mandates;
             this.kvotaNumber = kvotaNumber;
-            this.mandateOverflowOk = mandateOverflowOk;
-            this.mandateUnderflowOk = mandateUnderflowOk;
+            this._mandateOverflowOk = mandateOverflowOk;
+            this._mandateUnderflowOk = mandateUnderflowOk;
             CalculateMandates();
         }
-        
+
 
         private void CalculateKvota()
         {
-            allVotes = votes.Sum();
+            allVotes = votes.Values.Sum();
             kvota = allVotes / mandates + kvotaNumber;
         }
-        
+
         private void CalculateMandatesParties()
         {
-            mandatesParties = new int[parties];
+            mandatesParties = new Dictionary<int, int>();
             leftOverVotes = new Dictionary<int, int>();
-            for (int i = 0; i < parties; i++)
+            foreach (var party in votes)
             {
-                mandatesParties[i] = votes[i] / kvota;
-                leftOverVotes[i] = votes[i] % kvota;
+                mandatesParties.Add(party.Key, party.Value / kvota);
+                leftOverVotes.Add(party.Key, party.Value % kvota);
+
             }
         }
 
         private void FixNotEqualMandates()
         {
             int toAdd = mandates - mandatesUsed;
-            if (toAdd > 0 && (!mandateUnderflowOk))
+            if (toAdd > 0 && (!_mandateUnderflowOk))
             {
                 leftOverVotes.OrderByDescending(x => x.Value);
             }
-            else if (toAdd < 0 && (!mandateOverflowOk))
+            else if (toAdd < 0 && (!_mandateOverflowOk))
             {
                 leftOverVotes.OrderBy(x => x.Value);
                 toAdd = -toAdd;
@@ -666,21 +667,74 @@ class VotingSystems
                 {
                     break;
                 }
+
                 mandatesParties[party.Key]++;
                 toAdd--;
             }
         }
-        
+
         public void CalculateMandates()
         {
             CalculateKvota();
             CalculateMandatesParties();
-            mandatesUsed = mandatesParties.Sum();
+            mandatesUsed = mandatesParties.Values.Sum();
             FixNotEqualMandates();
         }
     }
-    
-    static void CalculateElectionCz2021PS(IDictionary<int, Kraj> kraje, int mandates, int nParties)
+
+    static IDictionary<int, Party> SuccessfulParties(IDictionary<int, Party> parties, IList<float> percentageNeeded,
+        int allVotes)
+    {
+        IDictionary<int, Party> successfulParties = new Dictionary<int, Party>();
+        foreach (var party in parties.Values)
+        {
+            float percentage = ((float) party.allvotes * 100 / (float) allVotes);
+
+            int bracket = party.nCoalitionParties;
+            if (bracket >= percentageNeeded.Count)
+            {
+                bracket = percentageNeeded.Count - 1;
+            }
+
+            if (percentage < percentageNeeded[bracket])
+            {
+                party.isSuccesfull = false;
+            }
+            else
+            {
+                party.isSuccesfull = true;
+                successfulParties.Add(party.id, party);
+            }
+        }
+
+        return successfulParties;
+    }
+
+    static void MoveDataBetweenKrajeAndParties(IDictionary<int, Party> parties, IDictionary<int, Kraj> kraje)
+    {
+        foreach (var kraj in kraje)
+        {
+
+            foreach (var party in parties)
+            {
+                party.Value.votesKraj.Add(kraj.Key, kraj.Value.votesParties[party.Key]);
+            }
+        }
+
+        foreach (var party in parties)
+        {
+            party.Value.allvotes = party.Value.votesKraj.Values.Sum();
+        }
+    }
+
+    static void CalculateElectionCz2017Ps(IDictionary<int, Kraj> kraje, int mandates, IDictionary<int, Party> parties,
+        float[] percentageNeeded)
+    {
+
+    }
+
+    static void CalculateElectionCz2021Ps(IDictionary<int, Kraj> kraje, int mandates, IDictionary<int, Party> parties,
+        float[] percentageNeeded)
     {
         //Number of mandates in each kraj
         if (mandates < 1)
@@ -688,61 +742,111 @@ class VotingSystems
             throw new Exception("Error: Mandates must be greater than 0");
             return;
         }
-        
-        int[] votesKraje = new int[kraje.Count];
-        IDictionary<int,int> KrajeToIdTranslator = new Dictionary<int, int>();
-        int id = 0;
-        foreach (var kraj  in kraje)
-        {
-            KrajeToIdTranslator.Add(kraj.Key, id);
-            votesKraje[id] = kraj.Value.sumVotes;
-            id++;
-        }
 
-        Skrutinium DivideMandatesKraje = new Skrutinium(kraje.Count, votesKraje, mandates, 0, false, false);
+        IDictionary<int, int> votesKraje = new Dictionary<int, int>();
         foreach (var kraj in kraje)
         {
-            kraj.Value.AddMandates(DivideMandatesKraje.mandatesParties[KrajeToIdTranslator[kraj.Key]]);
+            votesKraje.Add(kraj.Key, kraj.Value.sumVotes);
         }
-        
-        int leftoverMandates = 0;
-        int[] leftoverVotesParties = new int[nParties];
-        
-        foreach (var kraj in kraje.Values)
+
+        Skrutinium divideMandatesKraje = new Skrutinium(votesKraje, mandates, 0, false, false);
+        foreach (var kraj in kraje)
         {
-            Skrutinium firstSkrutinium = new Skrutinium(nParties, kraj.votesParties, kraj.mandates, 2, false, true);
-            kraj.mandatesParties = firstSkrutinium.mandatesParties;
-            leftoverMandates += kraj.mandates - kraj.mandatesParties.Sum();
-            for(int i = 0; i<nParties; i++)
-            {
-                leftoverVotesParties[i] += firstSkrutinium.leftOverVotes[i];
-            }
+            kraj.Value.AddMandates(divideMandatesKraje.mandatesParties[kraj.Key]);
         }
-        
-        Skrutinium secondSkrutinium = new Skrutinium(nParties, leftoverVotesParties, leftoverMandates, 1, false, false);
+
+        IDictionary<int, Party> successfulParties =
+            SuccessfulParties(parties, percentageNeeded, votesKraje.Values.Sum());
+
+        int leftoverMandates = 0;
+
+
+        foreach (var kraj in kraje)
+        {
+            IDictionary<int, int> votesKrajSuccessfulParties = new Dictionary<int, int>();
+            foreach (var party in successfulParties)
+            {
+                votesKrajSuccessfulParties.Add(party.Key, kraj.Value.votesParties[party.Key]);
+            }
+
+            Skrutinium firstSkrutinium =
+                new Skrutinium(votesKrajSuccessfulParties, kraj.Value.mandates, 2, false, true);
+            foreach (var party in successfulParties)
+            {
+                party.Value.mandatesKraj.Add(kraj.Key, firstSkrutinium.mandatesParties[party.Key]);
+                party.Value.leftoverVotesKraj.Add(kraj.Key, firstSkrutinium.leftOverVotes[party.Key]);
+            }
+
+            leftoverMandates += firstSkrutinium.mandates - firstSkrutinium.mandatesParties.Values.Sum();
+        }
+
+        IDictionary<int, int> leftoverVotesParties = new Dictionary<int, int>();
+
+        foreach (var party in successfulParties)
+        {
+            leftoverVotesParties.Add(party.Key, party.Value.leftoverVotesKraj.Values.Sum());
+        }
+
+
+        Skrutinium secondSkrutinium = new Skrutinium(leftoverVotesParties, leftoverMandates, 1, false, false);
+        foreach (var party in successfulParties)
+        {
+            if (secondSkrutinium.mandatesParties[party.Key] > 0)
+            {
+                var leftoverVotesSorted = party.Value.leftoverVotesKraj.OrderByDescending(x => x.Value);
+                foreach (var leftoverParty in leftoverVotesSorted)
+                {
+                    if (secondSkrutinium.mandatesParties[party.Key] <= 0)
+                    {
+                        break;
+                    }
+
+                    party.Value.mandatesKraj[leftoverParty.Key]++;
+                    secondSkrutinium.mandatesParties[party.Key]--;
+                }
+            }
+
+            party.Value.mandates = party.Value.mandatesKraj.Values.Sum();
+        }
 
     }
-    
-    
-    static IDictionary<int, Kraj> CreateKrajData(Okrsek[] votingData)
+
+    static void PrintResults(IDictionary<int, Party> parties)
     {
-        Bitmap map_kraje = new Bitmap("map_kraje.bmp");
+        Console.WriteLine(
+            "-----------------------------------------------------------------------------------------------------------------------");
+        Console.WriteLine("Mandates isused: " + parties.Values.Sum(x => x.mandates));
+        Console.WriteLine("Id\tMan.\tVotes\tSucc.\tName");
+        foreach (var party in parties)
+        {
+            Console.WriteLine(
+                $"{party.Value.id}\t{party.Value.mandates}\t{party.Value.allvotes}\t{party.Value.isSuccesfull}\t{party.Value.name}");
+        }
+
+        Console.WriteLine(
+            "-----------------------------------------------------------------------------------------------------------------------");
+    }
+
+
+    static IDictionary<int, Kraj> CreateKrajData(Okrsek[] votingData, int nParties)
+    {
+        Bitmap mapKraje = new Bitmap("map_kraje.bmp");
 
 
         IDictionary<int, Kraj> kraje = new Dictionary<int, Kraj>();
 
 
         //Tohle není pěkné, předělat pls, ale funguje
-        for (int i = 1; i < N_OKRSKY; i++)
+        for (int i = 1; i < NOkrsky; i++)
         {
             if (votingData[i].status == Status.LOCAL)
             {
 
-                int kraj = map_kraje
+                int kraj = mapKraje
                     .GetPixel(votingData[i].relativeMapPoint.Item1, votingData[i].relativeMapPoint.Item2).R;
                 if (!kraje.ContainsKey(kraj))
                 {
-                    kraje.Add(kraj, new Kraj(kraj));
+                    kraje.Add(kraj, new Kraj(kraj, nParties));
                 }
 
                 kraje[kraj].AddOkrsek(votingData[i]);
@@ -752,57 +856,63 @@ class VotingSystems
         return kraje;
     }
     
-   
-    
-    
     public static void Main(string[] args)
     {
 
-        const bool create_new_data = true;
-        const bool save_data = true;
+        const bool createNewData = true;
+        const bool saveData = true;
         const bool verbose = false;
-        const string parties_data_file = "nazvy_stran.txt";
-        const string okrsky_data_file = "pst4p.csv";
-        
-        var parties = LoadParties(parties_data_file);
-        
+        const string partiesDataFile = "nazvy_stran.txt";
+        const string okrskyDataFile = "pst4p.csv";
+        const int mandates = 200;
+        float[] percentageNeeded = new float[] {20};
+        //float[] percentageNeeded = new float[] {5, 5, 8, 11};
+        //float[] percentageNeeded = new flota[] {5, 5, 10, 15}
+
+
+        IDictionary<int, Party> parties = LoadParties(partiesDataFile);
+
         Okrsek[] votingData;
 
-        if (create_new_data)
+        if (createNewData)
         {
-            
             IDictionary<string, Location> mapData = CreateOkrskyMapData();
-            votingData = CreateOkrskyData(okrsky_data_file);
+            votingData = CreateOkrskyData(okrskyDataFile);
             ConnectData(votingData, mapData, verbose);
             CheckDataGood(votingData, mapData, verbose);
         }
 
-
-        int [] extremes = FindExtremes(votingData);
-        Console.WriteLine("This are extremes: " + extremes[0] + " " + extremes[1] + " " + extremes[2] + " " + extremes[3]);
         //Find maximum positions of okrseks to draw good map
-        
+
+        int[] extremes = FindExtremes(votingData);
+        //Console.WriteLine("This are extremes: " + extremes[0] + " " + extremes[1] + " " + extremes[2] + " " + extremes[3]);
+
+
         //Draw map
 
-        const int map_width = 1000;
-        const int map_height = 1000;
-        for (int i = 1; i < N_OKRSKY; i++)
+        const int mapWidth = 1000;
+        const int mapHeight = 1000;
+        for (int i = 1; i < NOkrsky; i++)
         {
-            
-            votingData[i].SetRelativeLocation(map_width, map_height, extremes);
+
+            votingData[i].SetRelativeLocation(mapWidth, mapHeight, extremes);
         }
-        
-        const string map_file = "map.bmp";
-        
-        CreateMap(votingData, map_width, map_height, map_file);
-        
+
+        const string mapFile = "map.bmp";
+
+        CreateMap(votingData, mapWidth, mapHeight, mapFile);
+
         //Open map of kraje
 
-        IDictionary<int, Kraj> kraje = CreateKrajData(votingData); 
-        
-        CalculateElectionCz2021PS(kraje, 200, parties.Length);
-              
+        IDictionary<int, Kraj> kraje = CreateKrajData(votingData, NParties);
+
+        MoveDataBetweenKrajeAndParties(parties, kraje);
+
+        CalculateElectionCz2021Ps(kraje, mandates, parties, percentageNeeded);
+
+        PrintResults(parties);
 
         //Kraje
     }
 }
+    
