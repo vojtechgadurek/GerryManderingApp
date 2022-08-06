@@ -26,7 +26,7 @@ height = N - výška mapy v pixelech
 width = N - šířka mapy v pixelech
 voting_method = N - na výběr je z let 2017 a 2021
 mandates = N - počet udělovaných mandátů
-percetage_to_be_successful = {N,...,M} - procento hlasů, které strana musí získat, 
+percetage_to_be_successful = N,...,M - procento hlasů, které strana musí získat, 
 pro daný počet stran v koalici, jeli více stran v koalici než délka pole platí pro koalici
 poslední hranice
  ```

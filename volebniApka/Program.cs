@@ -58,7 +58,6 @@ class VotingSystems
 
 
     //Počer stran je 22
-    const int NParties = 22;
 
     //Covid okrsky
 
@@ -326,7 +325,7 @@ class VotingSystems
         return obec + "-" + okrsek;
     }
 
-    static Okrsek[] CreateOkrskyData(string fileLocation)
+    static Okrsek[] CreateOkrskyData(string fileLocation, int nParties)
     {
         FileStream votingDataStream = File.Open(fileLocation, FileMode.Open);
         StreamReader votingDataReader = new StreamReader(votingDataStream);
@@ -353,7 +352,7 @@ class VotingSystems
                 return null;
             }
 
-            if (party > NParties)
+            if (party > nParties)
             {
                 Console.WriteLine("Chyba: Kód strany je větší než počet stran");
                 return null;
@@ -361,7 +360,7 @@ class VotingSystems
 
             if (votingData[id] == null)
             {
-                votingData[id] = new Okrsek(id, obec, okrsek, NParties);
+                votingData[id] = new Okrsek(id, obec, okrsek, nParties);
             }
 
             votingData[id].AddVote(party, votes);
@@ -393,7 +392,7 @@ class VotingSystems
     }
 
 
-    static IDictionary<string, Location> CreateOkrskyMapData()
+    static IDictionary<string, Location> CreateOkrskyMapData(string mapDataFile)
     {
         //open map_data.txt file
         // Data are in format
@@ -405,7 +404,7 @@ class VotingSystems
         const string freespace = "      ";
         IDictionary<string, Location> mapData = new Dictionary<string, Location>();
 
-        FileStream mapDataStream = File.Open("map_data.txt", FileMode.Open);
+        FileStream mapDataStream = File.Open(mapDataFile, FileMode.Open);
         StreamReader mapDataReader = new StreamReader(mapDataStream);
 
         string positionString;
@@ -893,9 +892,9 @@ class VotingSystems
     }
 
 
-    static IDictionary<int, Kraj> CreateKrajData(Okrsek[] votingData, int nParties)
+    static IDictionary<int, Kraj> CreateKrajData(Okrsek[] votingData, int nParties, string mapFile)
     {
-        Bitmap mapKraje = new Bitmap("map_kraje.bmp");
+        Bitmap mapKraje = new Bitmap(mapFile);
 
 
         IDictionary<int, Kraj> kraje = new Dictionary<int, Kraj>();
@@ -919,21 +918,41 @@ class VotingSystems
 
         return kraje;
     }
-    
+
+    static string ReadConfigLine(StreamReader streamReader, string test)
+    {
+        string line = streamReader.ReadLine();
+        if (line.StartsWith(test))
+        {
+            return line.Split(" = ")[1];
+        }
+        else
+        {
+            throw new Exception("wrong format of config file " + line);
+        }
+    }
+
     public static void Main(string[] args)
     {
-
+        StreamReader configFile = new StreamReader("settings.txt");
+        string mapKrajeFile = ReadConfigLine(configFile, "map_file_name");
+        int mapHeight = Int32.Parse(ReadConfigLine(configFile,"height"));
+        int mapWidth = Int32.Parse(ReadConfigLine(configFile,"width"));
+        int votingMethod = Int32.Parse(ReadConfigLine(configFile,"voting_method"));
+        const int NParties = 22;
         const bool createNewData = true;
         const bool saveData = true;
         const bool verbose = false;
         const string partiesDataFile = "nazvy_stran.txt";
         const string okrskyDataFile = "pst4p.csv";
-        const int mandates = 200;
+        int mandates = Int32.Parse(ReadConfigLine(configFile,"mandates"));
+        const string mapDataFile = "map_data.txt";
+        const string mapFile = "map.bmp";
         //float[] percentageNeeded = new float[] {20};
-        float[] percentageNeeded = new float[] {4};
+        float[] percentageNeeded = ReadConfigLine(configFile, "percetage_to_be_successful").Split(",").Select(x => float.Parse(x)).ToArray();
         //float[] percentageNeeded = new float[] {5, 5, 8, 11};
         //float[] percentageNeeded = new flota[] {5, 5, 10, 15}
-
+        configFile.Close();
 
         IDictionary<int, Party> parties = LoadParties(partiesDataFile);
 
@@ -941,8 +960,8 @@ class VotingSystems
 
         if (createNewData)
         {
-            IDictionary<string, Location> mapData = CreateOkrskyMapData();
-            votingData = CreateOkrskyData(okrskyDataFile);
+            IDictionary<string, Location> mapData = CreateOkrskyMapData(mapDataFile);
+            votingData = CreateOkrskyData(okrskyDataFile, NParties);
             ConnectData(votingData, mapData, verbose);
             CheckDataGood(votingData, mapData, verbose);
         }
@@ -958,21 +977,18 @@ class VotingSystems
         //Dodělat testovaní, že obrázky splnují rozměry.
         //Volbu generovat nové
         //Nefunguje pro rozdílné poměry => je potřeba to opravit
-        const int mapWidth = 1000;
-        const int mapHeight = 1000;
+        
         for (int i = 1; i < NOkrsky; i++)
         {
 
             votingData[i].SetRelativeLocation(mapWidth, mapHeight, extremes);
         }
 
-        const string mapFile = "map.bmp";
-
         CreateMap(votingData, mapWidth, mapHeight, mapFile);
 
         //Open map of kraje
 
-        IDictionary<int, Kraj> kraje = CreateKrajData(votingData, NParties);
+        IDictionary<int, Kraj> kraje = CreateKrajData(votingData, NParties, mapKrajeFile);
 
         MoveDataBetweenKrajeAndParties(parties, kraje);
 
