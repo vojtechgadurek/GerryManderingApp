@@ -40,6 +40,10 @@
         "net6.0": {
           "targetAlias": "net6.0",
           "dependencies": {
+            "C5": {
+              "target": "Package",
+              "version": "[3.0.0-rc, )"
+            },
             "SkiaSharp": {
               "target": "Package",
               "version": "[2.88.1-preview.91, )"

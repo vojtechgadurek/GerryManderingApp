@@ -44,3 +44,4 @@ C:\Users\vgvoj\RiderProjects\volebniApka\volebniApka\obj\Debug\net6.0\refint\vol
 C:\Users\vgvoj\RiderProjects\volebniApka\volebniApka\obj\Debug\net6.0\volebniApka.pdb
 C:\Users\vgvoj\RiderProjects\volebniApka\volebniApka\obj\Debug\net6.0\volebniApka.genruntimeconfig.cache
 C:\Users\vgvoj\RiderProjects\volebniApka\volebniApka\obj\Debug\net6.0\ref\volebniApka.dll
+C:\Users\vgvoj\RiderProjects\volebniApka\volebniApka\bin\Debug\net6.0\C5.dll

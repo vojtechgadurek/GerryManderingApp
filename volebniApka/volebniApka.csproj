@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="C5" Version="3.0.0-rc" />
       <PackageReference Include="SkiaSharp" Version="2.88.1-preview.91" />
       <PackageReference Include="SkiaSharp.Linux" Version="1.59.3" />
       <PackageReference Include="System.Drawing.Common" Version="7.0.0-preview.6.22324.4" />

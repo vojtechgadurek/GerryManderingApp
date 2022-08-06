@@ -2,6 +2,15 @@
   "version": 3,
   "targets": {
     "net6.0": {
+      "C5/3.0.0-rc": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/C5.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/C5.dll": {}
+        }
+      },
       "Microsoft.Win32.SystemEvents/7.0.0-preview.6.22324.4": {
         "type": "package",
         "compile": {
@@ -107,6 +116,22 @@
     }
   },
   "libraries": {
+    "C5/3.0.0-rc": {
+      "sha512": "AcSvAq/ACCPhOT8EQBcCEqVk8fto78NlkkK/kF8MK1pFBoEQgD9jI3+gRWZOd69fjPa/9X91I3PRYGEijXkdhA==",
+      "type": "package",
+      "path": "c5/3.0.0-rc",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "c5.3.0.0-rc.nupkg.sha512",
+        "c5.nuspec",
+        "icon.png",
+        "lib/net6.0/C5.dll",
+        "lib/net6.0/C5.xml",
+        "lib/netstandard2.0/C5.dll",
+        "lib/netstandard2.0/C5.xml"
+      ]
+    },
     "Microsoft.Win32.SystemEvents/7.0.0-preview.6.22324.4": {
       "sha512": "dPD9SJCpwmDlZY8hC0recgWinW+X2HDukued6KnlXIFbgxAwfDbnZvzmNerv9t8Ncsm6UkBxamns/KbRILUoaQ==",
       "type": "package",
@@ -315,6 +340,7 @@
   },
   "projectFileDependencyGroups": {
     "net6.0": [
+      "C5 >= 3.0.0-rc",
       "SkiaSharp >= 2.88.1-preview.91",
       "SkiaSharp.Linux >= 1.59.3",
       "System.Drawing.Common >= 7.0.0-preview.6.22324.4"
@@ -359,6 +385,10 @@
       "net6.0": {
         "targetAlias": "net6.0",
         "dependencies": {
+          "C5": {
+            "target": "Package",
+            "version": "[3.0.0-rc, )"
+          },
           "SkiaSharp": {
             "target": "Package",
             "version": "[2.88.1-preview.91, )"

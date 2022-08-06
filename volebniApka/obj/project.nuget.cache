@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "bL628tb4PBbDL/vy9l3Beo1uLfWLKyTiWYlYEPlyD7mDTzVKCGoEtEtlk4oMOPE6d5jZlVr8nw3pmvpewcXVQw==",
+  "dgSpecHash": "RM6O1tAE5Gv87aYKcHjQ3U+10bsGZs/qq08nKc+8yq9Ff3Rc4g8kwokNtQi+jTWPyGY2/VgtiH2FzTd+FylcvQ==",
   "success": true,
   "projectFilePath": "C:\\Users\\vgvoj\\RiderProjects\\volebniApka\\volebniApka\\volebniApka.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\vgvoj\\.nuget\\packages\\c5\\3.0.0-rc\\c5.3.0.0-rc.nupkg.sha512",
     "C:\\Users\\vgvoj\\.nuget\\packages\\microsoft.win32.systemevents\\7.0.0-preview.6.22324.4\\microsoft.win32.systemevents.7.0.0-preview.6.22324.4.nupkg.sha512",
     "C:\\Users\\vgvoj\\.nuget\\packages\\skiasharp\\2.88.1-preview.91\\skiasharp.2.88.1-preview.91.nupkg.sha512",
     "C:\\Users\\vgvoj\\.nuget\\packages\\skiasharp.linux\\1.59.3\\skiasharp.linux.1.59.3.nupkg.sha512",

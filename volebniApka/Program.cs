@@ -16,6 +16,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 
+
 class VotingSystems
 {
     //Najít Porubu => je v datech?
@@ -727,10 +728,78 @@ class VotingSystems
         }
     }
 
+    static IDictionary<int, int> DeHont(IDictionary<int, int> votesParties, int mandates)
+    {
+        IDictionary<int, int> mandatesParties = new Dictionary<int, int>();
+        SortedList<int, int> votesPartiesSorted = new SortedList<int, int>();
+        foreach (var party in votesParties)
+        {
+            votesPartiesSorted.Add(party.Value, party.Key);
+            mandatesParties.Add(party.Key, 0);
+        }
+
+        while (mandates > 0)
+        {
+            var party = votesPartiesSorted.Last();
+            int key = party.Value;
+            int value = party.Key;
+            mandatesParties[key]++;
+            votesPartiesSorted.Remove(value);
+            votesPartiesSorted.Add(votesParties[key] / (mandatesParties[key] + 1), party.Value);
+            mandates--;
+        }
+        return mandatesParties;
+    }
+
     static void CalculateElectionCz2017Ps(IDictionary<int, Kraj> kraje, int mandates, IDictionary<int, Party> parties,
         float[] percentageNeeded)
     {
+        //Number of mandates in each kraj
+        if (mandates < 1)
+        {
+            throw new Exception("Error: Mandates must be greater than 0");
+            return;
+        }
 
+        IDictionary<int, int> votesKraje = new Dictionary<int, int>();
+        foreach (var kraj in kraje)
+        {
+            votesKraje.Add(kraj.Key, kraj.Value.sumVotes);
+        }
+
+        MandatesToKraje(kraje, votesKraje, mandates);
+
+        IDictionary<int, Party> successfulParties =
+            SuccessfulParties(parties, percentageNeeded, votesKraje.Values.Sum());
+
+        foreach (var kraj in kraje)
+        {
+            IDictionary<int, int> votesParties = new Dictionary<int, int>();
+            foreach (var party in successfulParties)
+            {
+                votesParties.Add(party.Key, kraj.Value.votesParties[party.Key]);
+            }
+            IDictionary<int, int> mandatesParties = DeHont(votesParties, kraj.Value.mandates);
+            foreach (var party in mandatesParties)
+            {
+                successfulParties[party.Key].mandatesKraj[kraj.Key] = party.Value;
+            }
+        }
+
+        foreach (var party in parties)
+        {
+            party.Value.mandates = party.Value.mandatesKraj.Values.Sum();
+        }
+        
+    }
+
+    static void MandatesToKraje(IDictionary<int, Kraj> kraje, IDictionary<int,int> votesKraje, int mandates)
+    {
+        Skrutinium divideMandatesKraje = new Skrutinium(votesKraje, mandates, 0, false, false);
+        foreach (var kraj in kraje)
+        {
+            kraj.Value.AddMandates(divideMandatesKraje.mandatesParties[kraj.Key]);
+        }
     }
 
     static void CalculateElectionCz2021Ps(IDictionary<int, Kraj> kraje, int mandates, IDictionary<int, Party> parties,
@@ -749,11 +818,7 @@ class VotingSystems
             votesKraje.Add(kraj.Key, kraj.Value.sumVotes);
         }
 
-        Skrutinium divideMandatesKraje = new Skrutinium(votesKraje, mandates, 0, false, false);
-        foreach (var kraj in kraje)
-        {
-            kraj.Value.AddMandates(divideMandatesKraje.mandatesParties[kraj.Key]);
-        }
+        MandatesToKraje(kraje, votesKraje, mandates);
 
         IDictionary<int, Party> successfulParties =
             SuccessfulParties(parties, percentageNeeded, votesKraje.Values.Sum());
@@ -835,8 +900,7 @@ class VotingSystems
 
         IDictionary<int, Kraj> kraje = new Dictionary<int, Kraj>();
 
-
-        //Tohle není pěkné, předělat pls, ale funguje
+        
         for (int i = 1; i < NOkrsky; i++)
         {
             if (votingData[i].status == Status.LOCAL)
@@ -865,7 +929,8 @@ class VotingSystems
         const string partiesDataFile = "nazvy_stran.txt";
         const string okrskyDataFile = "pst4p.csv";
         const int mandates = 200;
-        float[] percentageNeeded = new float[] {20};
+        //float[] percentageNeeded = new float[] {20};
+        float[] percentageNeeded = new float[] {4};
         //float[] percentageNeeded = new float[] {5, 5, 8, 11};
         //float[] percentageNeeded = new flota[] {5, 5, 10, 15}
 
@@ -890,6 +955,9 @@ class VotingSystems
 
         //Draw map
 
+        //Dodělat testovaní, že obrázky splnují rozměry.
+        //Volbu generovat nové
+        //Nefunguje pro rozdílné poměry => je potřeba to opravit
         const int mapWidth = 1000;
         const int mapHeight = 1000;
         for (int i = 1; i < NOkrsky; i++)
@@ -908,7 +976,7 @@ class VotingSystems
 
         MoveDataBetweenKrajeAndParties(parties, kraje);
 
-        CalculateElectionCz2021Ps(kraje, mandates, parties, percentageNeeded);
+        CalculateElectionCz2017Ps(kraje, mandates, parties, percentageNeeded);
 
         PrintResults(parties);
 
