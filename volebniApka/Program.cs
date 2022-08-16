@@ -17,7 +17,7 @@ using System.Text.Json.Serialization;
 
 
 
-class VotingSystems
+class VolebniApka
 {
     //Najít Porubu => je v datech?
     //Constanty
@@ -114,6 +114,31 @@ class VotingSystems
             this.leader = leader;
             this.nCoalitionParties = nCoalitionParties;
             this.coalition = coalition;
+        }
+
+        public void addVote(int kraj, int votes)
+        {
+            if (leftoverVotesKraj.ContainsKey(kraj))
+            {
+                leftoverVotesKraj[kraj] += votes;
+            }
+            else
+            {
+                leftoverVotesKraj.Add(kraj, votes);
+            }
+        }
+        
+        public void addMandate(int kraj, int mandates)
+        {
+            this.mandates += mandates;
+            if (mandatesKraj.ContainsKey(kraj))
+            {
+                mandatesKraj[kraj] += mandates;
+            }
+            else
+            {
+                mandatesKraj.Add(kraj, mandates);
+            }
         }
     }
 
@@ -542,10 +567,16 @@ class VotingSystems
         public Extremes(IDictionary<int, Okrsek> okrsky)
         {
             var data = okrsky.Values;
-            maxX = data.Max(x => x.status != Status.LOCAL ? Int32.MinValue : x.mapPoint.Item1);
-            maxY = data.Max(x => x.status != Status.LOCAL ? Int32.MinValue : x.mapPoint.Item2);
-            minX = data.Min(x => x.status != Status.LOCAL ? Int32.MaxValue : x.mapPoint.Item1);
-            minY = data.Min(x => x.status != Status.LOCAL ? Int32.MaxValue : x.mapPoint.Item2);
+            Func<Okrsek, int, int, int> extremes = (okrsek, value, position) =>
+            {
+                return okrsek.status != Status.LOCAL ? value :
+                        position == 0 ? okrsek.mapPoint.Item1 : okrsek.mapPoint.Item2;
+            };
+            //Neskutečná ohavnost, jde nějak indexovat tuply? Chtělo by to prepsat
+            maxX = data.Max(x => extremes(x, Int32.MinValue, 0));
+            maxY = data.Max(x => extremes(x, Int32.MinValue, 1));
+            minX = data.Min(x => extremes(x, Int32.MaxValue, 0));
+            minY = data.Min(x => extremes(x, Int32.MaxValue, 1));
         }
     }
 
@@ -606,7 +637,9 @@ class VotingSystems
             leftOverVotes = new Dictionary<int, int>();
             foreach (var party in votes)
             {
-                mandatesParties.Add(party.Key, party.Value / kvota);
+                int mandatesAdd = party.Value / kvota;
+                mandatesParties.Add(party.Key, mandatesAdd);
+                mandatesUsed += mandatesAdd;
                 leftOverVotes.Add(party.Key, party.Value % kvota);
 
             }
@@ -638,6 +671,7 @@ class VotingSystems
                 }
 
                 mandatesParties[party.Key]++;
+                mandatesUsed += 1;
                 toAdd--;
             }
         }
@@ -739,7 +773,7 @@ class VotingSystems
         MandatesToKraje(kraje, votesKraje, mandates);
 
         IDictionary<int, Party> successfulParties =
-            SuccessfulParties(parties, percentageNeeded, votesKraje.Values.Sum());
+            SuccessfulParties(parties, percentageNeeded, /*Do I really need this */votesKraje.Values.Sum());
 
         foreach (var kraj in kraje)
         {
@@ -752,15 +786,9 @@ class VotingSystems
             IDictionary<int, int> mandatesParties = DeHont(votesParties, kraj.Value.mandates);
             foreach (var party in mandatesParties)
             {
-                successfulParties[party.Key].mandatesKraj[kraj.Key] = party.Value;
+                successfulParties[party.Key].addMandate(kraj.Key, party.Value);
             }
         }
-
-        foreach (var party in parties)
-        {
-            party.Value.mandates = party.Value.mandatesKraj.Values.Sum();
-        }
-
     }
 
     static void MandatesToKraje(IDictionary<int, Kraj> kraje, IDictionary<int, int> votesKraje, int mandates)
@@ -808,10 +836,10 @@ class VotingSystems
                 new Skrutinium(votesKrajSuccessfulParties, kraj.Value.mandates, 2, false, true);
             foreach (var party in successfulParties)
             {
-                party.Value.mandatesKraj.Add(kraj.Key, firstSkrutinium.mandatesParties[party.Key]);
-                party.Value.leftoverVotesKraj.Add(kraj.Key, firstSkrutinium.leftOverVotes[party.Key]);
+                party.Value.addMandate(kraj.Key, firstSkrutinium.mandatesParties[party.Key]);
+                party.Value.addVote(kraj.Key, firstSkrutinium.leftOverVotes[party.Key]);
             }
-
+            //Do I really need the sum?
             leftoverMandates += firstSkrutinium.mandates - firstSkrutinium.mandatesParties.Values.Sum();
         }
 
@@ -827,22 +855,21 @@ class VotingSystems
 
         foreach (var party in successfulParties)
         {
-            if (secondSkrutinium.mandatesParties[party.Key] > 0)
+            int partyLeftOverMandates = secondSkrutinium.mandatesParties[party.Key];
+            if ( partyLeftOverMandates > 0)
             {
                 var leftoverVotesSorted = party.Value.leftoverVotesKraj.OrderByDescending(x => x.Value);
                 foreach (var leftoverParty in leftoverVotesSorted)
                 {
-                    if (secondSkrutinium.mandatesParties[party.Key] <= 0)
+                    if (partyLeftOverMandates <= 0)
                     {
                         break;
                     }
 
-                    party.Value.mandatesKraj[leftoverParty.Key]++;
-                    secondSkrutinium.mandatesParties[party.Key]--;
+                    party.Value.addMandate(leftoverParty.Key, 1);
+                    partyLeftOverMandates--;
                 }
             }
-
-            party.Value.mandates = party.Value.mandatesKraj.Values.Sum();
         }
 
     }
@@ -904,6 +931,28 @@ class VotingSystems
         }
     }
     
+    static IDictionary<int, Kraj> gerryMandering(IDictionary<int, Okrsek> votingData, IDictionary<int, Party> parties)
+    {
+        IDictionary<int, Kraj> kraje = new Dictionary<int, Kraj>();
+        //Find valuable okrsek lot of lost votes
+        var dataSorted = votingData.Values.ToList();
+
+        Func<KeyValuePair<int, int>, int> voteSuccessParty = x => parties[x.Key].isSuccesfull ? x.Value : 0;
+        Func<Okrsek, int> succesPercentage = x => x.votesParties.Sum(x => voteSuccessParty(x)) * 100 / x.votesParties.Sum(x => x.Value); 
+        dataSorted.Sort((x, y) => succesPercentage(x).CompareTo(succesPercentage(y)));
+        int count = 0;
+        foreach (var okrsek in dataSorted)
+        {
+            Console.WriteLine(succesPercentage(okrsek));
+            if (count > 50)
+            {
+                break;
+            }
+
+            count++;
+        }
+        return kraje;
+    }
 
     public static void Main(string[] args)
     {
@@ -913,7 +962,7 @@ class VotingSystems
         int mapHeight = Int32.Parse(ReadConfigLine(configFile, "height"));
         int mapWidth = Int32.Parse(ReadConfigLine(configFile, "width"));
         int votingMethod = Int32.Parse(ReadConfigLine(configFile, "voting_method"));
-        const int NParties = 22;
+        const int nParties = 22;
         const bool createNewData = true;
         const bool saveData = true;
         const bool verbose = false;
@@ -936,7 +985,7 @@ class VotingSystems
         if (createNewData)
         {
             IDictionary<string, Location> mapData = CreateOkrskyMapData(mapDataFile);
-            votingData = CreateOkrskyData(okrskyDataFile, NParties);
+            votingData = CreateOkrskyData(okrskyDataFile, nParties);
             ConnectData(votingData, mapData, verbose);
             CheckDataGood(votingData, mapData, verbose);
         }
@@ -957,12 +1006,12 @@ class VotingSystems
         {
             okrsek.SetRelativeLocation(mapWidth, mapHeight, mapExtremes);
         }
-
+        //Tohle bych rád měl samostatně
         CreateMap(votingData, mapWidth, mapHeight, mapFile);
 
         //Open map of kraje
 
-        IDictionary<int, Kraj> kraje = CreateKrajData(votingData, NParties, mapKrajeFile);
+        IDictionary<int, Kraj> kraje = CreateKrajData(votingData, nParties, mapKrajeFile);
 
         MoveDataBetweenKrajeAndParties(parties, kraje);
 
@@ -979,6 +1028,7 @@ class VotingSystems
             throw new Exception("Wrong voting method");
         }
         PrintResults(parties);
+        gerryMandering(votingData, parties);
     }
 }
     
