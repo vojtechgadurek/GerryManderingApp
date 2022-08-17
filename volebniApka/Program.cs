@@ -25,7 +25,6 @@ class VolebniApka
 
     #region Constants
 
-
     const int NOkrsky = 14886 + 1;
 
     //Existuje 111 okrsků v zahraničí => Pozor na to META: V součastnosti ignorovány
@@ -56,17 +55,14 @@ class VolebniApka
     // META: V součastnosti ignorovány
 
 
-
     //Počer stran je 22
 
     //Covid okrsky
 
-
-
     #endregion
 
     #region Enums
-    
+
     #endregion
 
     #region Structs
@@ -80,60 +76,11 @@ class VolebniApka
         return obec + "-" + okrsek;
     }
 
-    static void CheckDataAllHaveLocation(IDictionary<int, Okrsek> votingData, bool verbose)
-    {
-        IList<string> missingLocation = new List<string>();
-        int counter = 0;
-        foreach (var okrsek in votingData.Values)
-        {
-            if (okrsek != null)
-            {
-                if (okrsek.status == Status.NOT_FOUND)
-                {
-                    counter++;
-                    missingLocation.Add("Error: Okrsek " + okrsek.id + " " + okrsek.obec + " " + okrsek.okrsek +
-                                        " do not have location");
-                }
-            }
-        }
-
-        if (verbose)
-        {
-            foreach (var missing in missingLocation)
-            {
-                Console.WriteLine(missing);
-            }
-        }
-
-        Console.WriteLine("Missing locations: " + counter + " out of " + votingData.Count);
-    }
-
-    static void CheckLocationsAllHaveData(IDictionary<string, Location> locations, bool verbose)
-    {
-        int counterN = 0;
-        int counter = 0;
-        foreach (var location in locations.Values)
-        {
-            counterN++;
-            if (!location.used)
-            {
-                if (verbose)
-                {
-                    Console.WriteLine("Error: Location " + location.superId + " " + location.superId2 + "  not used");
-                }
-
-                counter++;
-            }
-        }
-
-        Console.WriteLine("Locations not used: " + counter + " of " + counterN);
-    }
-
-    static void CheckDataGood(IDictionary<int, Okrsek> votingData, IDictionary<string, Location> locations,
+    static void CheckDataGood(Okrsky okrsky, IDictionary<string, Location> locations,
         bool verbose)
     {
-        CheckDataAllHaveLocation(votingData, verbose);
-        CheckLocationsAllHaveData(locations, verbose);
+        okrsky.CheckDataAllHaveLocation(verbose);
+        OkrskyPositions.CheckLocationsAllHaveData(locations, verbose);
     }
 
     #endregion
@@ -141,8 +88,8 @@ class VolebniApka
     static void CreateMap(IDictionary<int, Okrsek> votingData, int mapWidth, int mapHeight, string fileLocation)
     {
         Bitmap bitmap = new Bitmap(mapWidth + 1, mapHeight + 1);
-        foreach (var okrsek in votingData){
-            
+        foreach (var okrsek in votingData)
+        {
             if (okrsek.Value.status == Status.LOCAL)
             {
                 bitmap.SetPixel(okrsek.Value.relativeMapPoint[0], okrsek.Value.relativeMapPoint[1],
@@ -154,11 +101,11 @@ class VolebniApka
         //Draw bitmap
         bitmap.Save(fileLocation);
     }
+
     static void MoveDataBetweenKrajeAndParties(Parties parties, IDictionary<int, Kraj> kraje)
     {
         foreach (var kraj in kraje)
         {
-
             foreach (var party in parties.stuff)
             {
                 parties.addVotes(party.Key, kraj.Key, kraj.Value.votes[party.Key]);
@@ -229,7 +176,7 @@ class VolebniApka
 
     static void MandatesToKraje(IDictionary<int, Kraj> kraje, IDictionary<int, int> votesKraje, int mandates)
     {
-        Skrutinium divideMandatesKraje = new Skrutinium( mandates, votesKraje, 0, false, false);
+        Skrutinium divideMandatesKraje = new Skrutinium(mandates, votesKraje, 0, false, false);
         foreach (var kraj in kraje)
         {
             kraj.Value.mandates.Add(kraj.Key, divideMandatesKraje.mandates[kraj.Key]);
@@ -255,7 +202,7 @@ class VolebniApka
         MandatesToKraje(kraje, votesKraje, mandates);
 
         parties.SuccessfulParties(percentageNeeded);
-        IDictionary<int, Party> successfulParties = parties.succs; 
+        IDictionary<int, Party> successfulParties = parties.succs;
         int leftoverMandates = 0;
 
         foreach (var kraj in kraje)
@@ -267,28 +214,29 @@ class VolebniApka
             }
 
             Skrutinium firstSkrutinium =
-                new Skrutinium( kraj.Value.mandates.sum, votesKrajSuccessfulParties, 2, false, true);
+                new Skrutinium(kraj.Value.mandates.sum, votesKrajSuccessfulParties, 2, false, true);
             foreach (var party in successfulParties)
             {
                 party.Value.mandates.Add(kraj.Key, firstSkrutinium.mandates[party.Key]);
                 party.Value.leftoverVotes.Add(kraj.Key, firstSkrutinium.leftoverVotes[party.Key]);
             }
+
             leftoverMandates += firstSkrutinium.maxMandates - firstSkrutinium.mandates.sum;
         }
-        
+
         Skrutinium secondSkrutinium = new Skrutinium(leftoverMandates, 1, false, false);
-        
+
         foreach (var party in successfulParties)
         {
             secondSkrutinium.votes.Add(party.Key, party.Value.leftoverVotes.sum);
         }
-        
+
         secondSkrutinium.CalculateMandates();
-        
+
         foreach (var party in successfulParties)
         {
             int partyLeftOverMandates = secondSkrutinium.mandates.Get(party.Key);
-            if ( partyLeftOverMandates > 0)
+            if (partyLeftOverMandates > 0)
             {
                 var leftoverVotesSorted = party.Value.leftoverVotes.stuff.OrderByDescending(x => x.Value);
                 foreach (var leftoverParty in leftoverVotesSorted)
@@ -303,7 +251,6 @@ class VolebniApka
                 }
             }
         }
-
     }
 
     static void PrintResults(Parties parties)
@@ -321,7 +268,7 @@ class VolebniApka
         Console.WriteLine(
             "-----------------------------------------------------------------------------------------------------------------------");
     }
-    
+
 
     static string ReadConfigLine(StreamReader streamReader, string test)
     {
@@ -362,20 +309,20 @@ class VolebniApka
 
         Parties parties = new Parties(partiesDataFile);
 
-        IDictionary<int,Okrsek> votingData;
+        IDictionary<int, Okrsek> votingData;
         Okrsky okrsky = new Okrsky(okrskyDataFile, ObceZahra, _specialOkrsky);
 
         if (createNewData)
         {
             IDictionary<string, Location> mapData = OkrskyPositions.Create(mapDataFile);
-            votingData = okrsky.stuff; 
-            okrsky.ConnectData( mapData, verbose);
-            CheckDataGood(votingData, mapData, verbose);
+            votingData = okrsky.stuff;
+            okrsky.ConnectData(mapData, verbose);
+            CheckDataGood(okrsky, mapData, verbose);
         }
 
         //Find maximum positions of okrseks to draw good map
         ;
-        
+
         // maxX, minX, maxY, minY
         Extremes mapExtremes = new Extremes(votingData);
         //Console.WriteLine("This are extremes: " + extremes[0] + " " + extremes[1] + " " + extremes[2] + " " + extremes[3]);
@@ -389,6 +336,7 @@ class VolebniApka
         {
             okrsek.SetRelativeLocation(mapWidth, mapHeight, mapExtremes);
         }
+
         //Tohle bych rád měl samostatně
         CreateMap(votingData, mapWidth, mapHeight, mapFile);
 
@@ -411,7 +359,7 @@ class VolebniApka
         {
             throw new Exception("Wrong voting method");
         }
+
         PrintResults(parties);
     }
 }
-    
