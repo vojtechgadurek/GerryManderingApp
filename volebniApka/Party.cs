@@ -14,4 +14,9 @@ public class Party : VotingObject
         this.leader = leader;
         this.nCoalitionParties = nCoalitionParties;
     }
+    
+    public void SetSuccesfullness(bool isSuccesfull)
+    {
+        this.isSuccesfull = isSuccesfull;
+    }
 }

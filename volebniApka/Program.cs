@@ -66,21 +66,7 @@ class VolebniApka
     #endregion
 
     #region Enums
-
-    enum DataNames
-    {
-        ID_OKRSKY,
-        TYP_FORM,
-        OPRAVA,
-        CHYBA,
-        OKRES,
-        OBEC,
-        OKRSEK,
-        KC_1,
-        KSTRANA,
-        POC_HLASU,
-    }
-
+    
     #endregion
 
     #region Structs
@@ -92,39 +78,6 @@ class VolebniApka
     public static string FsuperId(string obec, string okrsek)
     {
         return obec + "-" + okrsek;
-    }
-
-    static IDictionary<int, Okrsek> CreateOkrskyData(string fileLocation, int nParties)
-    {
-        FileStream votingDataStream = File.Open(fileLocation, FileMode.Open);
-        StreamReader votingDataReader = new StreamReader(votingDataStream);
-        IDictionary<int, Okrsek> votingData = new Dictionary<int, Okrsek>();
-
-
-        //Načtení dat z CSV souboru
-
-        string line = votingDataReader.ReadLine(); //Vynechá hlavičku
-        while ((line = votingDataReader.ReadLine()) != null)
-        {
-            string[] data = line.Split(',');
-            int id = int.Parse(data[(int) DataNames.ID_OKRSKY]);
-            int party = int.Parse(data[(int) DataNames.KSTRANA]);
-            int votes = int.Parse(data[(int) DataNames.POC_HLASU]);
-            int obec = int.Parse(data[(int) DataNames.OBEC]);
-            int okrsek = int.Parse(data[(int) DataNames.OKRSEK]);
-
-            if (!votingData.ContainsKey(id))
-            {
-                votingData.Add(id, new Okrsek(id, obec, okrsek, ObceZahra, _specialOkrsky));
-            }
-
-            votingData[id].votes.Add(party, votes);
-        }
-
-        votingDataReader.Close();
-        votingDataStream.Close();
-        
-        return votingData;
     }
 
     static IDictionary<string, Location> CreateOkrskyMapData(string mapDataFile)
@@ -297,35 +250,6 @@ class VolebniApka
         //Draw bitmap
         bitmap.Save(fileLocation);
     }
-
-    static IDictionary<int, Party> SuccessfulParties(IDictionary<int, Party> parties, IList<float> percentageNeeded,
-        int allVotes)
-    {
-        IDictionary<int, Party> successfulParties = new Dictionary<int, Party>();
-        foreach (var party in parties.Values)
-        {
-            float percentage = ((float) party.votes.sum * 100 / (float) allVotes);
-
-            int bracket = party.nCoalitionParties;
-            if (bracket >= percentageNeeded.Count)
-            {
-                bracket = percentageNeeded.Count - 1;
-            }
-
-            if (percentage < percentageNeeded[bracket])
-            {
-                party.isSuccesfull = false;
-            }
-            else
-            {
-                party.isSuccesfull = true;
-                successfulParties.Add(party.id, party);
-            }
-        }
-
-        return successfulParties;
-    }
-
     static void MoveDataBetweenKrajeAndParties(Parties parties, IDictionary<int, Kraj> kraje)
     {
         foreach (var kraj in kraje)
@@ -333,7 +257,7 @@ class VolebniApka
 
             foreach (var party in parties.stuff)
             {
-                party.Value.votes.Add(kraj.Key, kraj.Value.votes[party.Key]);
+                parties.addVotes(party.Key, kraj.Key, kraj.Value.votes[party.Key]);
             }
         }
     }
@@ -380,8 +304,8 @@ class VolebniApka
 
         MandatesToKraje(kraje, votesKraje, mandates);
 
-        IDictionary<int, Party> successfulParties =
-            SuccessfulParties(parties.stuff, percentageNeeded, /*Do I really need this */votesKraje.Values.Sum());
+        parties.SuccessfulParties(percentageNeeded);
+        IDictionary<int, Party> successfulParties = parties.succs;
 
         foreach (var kraj in kraje)
         {
@@ -426,18 +350,16 @@ class VolebniApka
 
         MandatesToKraje(kraje, votesKraje, mandates);
 
-        IDictionary<int, Party> successfulParties =
-            SuccessfulParties(parties.stuff, percentageNeeded, votesKraje.Values.Sum());
-
+        parties.SuccessfulParties(percentageNeeded);
+        IDictionary<int, Party> successfulParties = parties.succs; 
         int leftoverMandates = 0;
-
 
         foreach (var kraj in kraje)
         {
             IDictionary<int, int> votesKrajSuccessfulParties = new Dictionary<int, int>();
             foreach (var party in successfulParties)
             {
-                votesKrajSuccessfulParties.Add(party.Key, kraj.Value.votes.stuff[party.Key]);
+                votesKrajSuccessfulParties.Add(party.Key, kraj.Value.votes[party.Key]);
             }
 
             Skrutinium firstSkrutinium =
@@ -568,7 +490,7 @@ class VolebniApka
         if (createNewData)
         {
             IDictionary<string, Location> mapData = CreateOkrskyMapData(mapDataFile);
-            votingData = CreateOkrskyData(okrskyDataFile, nParties);
+            votingData = new Okrsky(okrskyDataFile, ObceZahra, _specialOkrsky).stuff; 
             ConnectData(votingData, mapData, verbose);
             CheckDataGood(votingData, mapData, verbose);
         }

@@ -15,10 +15,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Remove="Map.cs" />
-      <Compile Remove="Kraj.cs" />
       <Compile Remove="Data.cs" />
       <Compile Remove="VolebniApka.cs" />
+      <Compile Remove="VotingObjectCollection.cs" />
     </ItemGroup>
 
 </Project>

@@ -15,11 +15,14 @@ public class Counter
     {
         if (stuff.ContainsKey(key))
         {
+            sum -= stuff[key];
             stuff[key] = value;
+            sum += value;
         }
         else
         {
             stuff.Add(key, value);
+            sum += value;
         }
     } 
     public void Set(IDictionary<int, int> stuff)
