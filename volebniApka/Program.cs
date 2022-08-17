@@ -80,102 +80,6 @@ class VolebniApka
         return obec + "-" + okrsek;
     }
 
-    static IDictionary<string, Location> CreateOkrskyMapData(string mapDataFile)
-    {
-        //open map_data.txt file
-        // Data are in format
-        // Position
-        // Okrsek
-        // Obec
-        // Obec2(optional)
-        // Freespace "      "
-        const string freespace = "      ";
-        IDictionary<string, Location> mapData = new Dictionary<string, Location>();
-
-        FileStream mapDataStream = File.Open(mapDataFile, FileMode.Open);
-        StreamReader mapDataReader = new StreamReader(mapDataStream);
-
-        string positionString;
-        int counter = 0;
-        while ((positionString = mapDataReader.ReadLine()) != null)
-        {
-            string okrsek = mapDataReader.ReadLine();
-            string obec = mapDataReader.ReadLine();
-            string obec2 = mapDataReader.ReadLine();
-
-            bool obec2Exists = false; //optional
-            if (obec2 != freespace)
-            {
-                obec2Exists = true;
-                mapDataReader.ReadLine();
-            }
-
-            string superId = FsuperId(obec, okrsek);
-
-            string[] position = positionString.Split(' ');
-
-            IList<int> positionXy;
-
-            try
-            {
-                positionXy =
-                    new List<int>{(int) float.Parse(position[0]), (int) float.Parse(position[1])};
-            }
-            catch (Exception)
-            {
-                throw new Exception("Error in map_data.txt file, wrong position format " + positionString + " " +
-                                    okrsek + " " + obec + " " + obec2 + " counter " + counter);
-            }
-
-
-
-            mapData.Add(superId, new Location(positionXy, superId));
-
-
-            if (obec2Exists)
-            {
-                string superId2 = FsuperId(obec2, okrsek);
-                mapData.Add(superId2, new Location(positionXy, superId));
-                mapData[superId].AddSuperId(superId2);
-            }
-
-            counter++;
-        }
-
-        mapDataReader.Close();
-
-
-        return mapData;
-    }
-
-    static IDictionary<int, Okrsek> ConnectData(IDictionary<int, Okrsek> votingData,
-        IDictionary<string, Location> mapData, bool verbose)
-    {
-        //Connect data
-        foreach (var okrsek in votingData.Values)
-        {
-            if (okrsek != null)
-            {
-                string superId = okrsek.superId.name;
-                if (mapData.ContainsKey(superId))
-                {
-                    okrsek.AddLocation(mapData[superId].GetLocation());
-                }
-                else
-                {
-                    if (verbose)
-                    {
-                        Console.WriteLine("Error: Location not found " + superId);
-                    }
-
-                    okrsek.status = Status.NOT_FOUND;
-                }
-            }
-        }
-
-        return votingData;
-    }
-
     static void CheckDataAllHaveLocation(IDictionary<int, Okrsek> votingData, bool verbose)
     {
         IList<string> missingLocation = new List<string>();
@@ -417,34 +321,7 @@ class VolebniApka
         Console.WriteLine(
             "-----------------------------------------------------------------------------------------------------------------------");
     }
-
-
-    static IDictionary<int, Kraj> CreateKrajData(IDictionary<int, Okrsek> votingData, int nParties, string mapFile)
-    {
-        Bitmap mapKraje = new Bitmap(mapFile);
-
-
-        IDictionary<int, Kraj> kraje = new Dictionary<int, Kraj>();
-
-
-        for (int i = 1; i < NOkrsky; i++)
-        {
-            if (votingData[i].status == Status.LOCAL)
-            {
-
-                int kraj = mapKraje
-                    .GetPixel(votingData[i].relativeMapPoint[0], votingData[i].relativeMapPoint[1]).R;
-                if (!kraje.ContainsKey(kraj))
-                {
-                    kraje.Add(kraj, new Kraj(kraj, nParties));
-                }
-
-                kraje[kraj].AddOkrsek(votingData[i]);
-            }
-        }
-
-        return kraje;
-    }
+    
 
     static string ReadConfigLine(StreamReader streamReader, string test)
     {
@@ -486,12 +363,13 @@ class VolebniApka
         Parties parties = new Parties(partiesDataFile);
 
         IDictionary<int,Okrsek> votingData;
+        Okrsky okrsky = new Okrsky(okrskyDataFile, ObceZahra, _specialOkrsky);
 
         if (createNewData)
         {
-            IDictionary<string, Location> mapData = CreateOkrskyMapData(mapDataFile);
-            votingData = new Okrsky(okrskyDataFile, ObceZahra, _specialOkrsky).stuff; 
-            ConnectData(votingData, mapData, verbose);
+            IDictionary<string, Location> mapData = OkrskyPositions.Create(mapDataFile);
+            votingData = okrsky.stuff; 
+            okrsky.ConnectData( mapData, verbose);
             CheckDataGood(votingData, mapData, verbose);
         }
 
@@ -516,7 +394,8 @@ class VolebniApka
 
         //Open map of kraje
 
-        IDictionary<int, Kraj> kraje = CreateKrajData(votingData, nParties, mapKrajeFile);
+        Kraje krajeX = new Kraje(okrsky, mapFile);
+        IDictionary<int, Kraj> kraje = krajeX.stuff;
 
         MoveDataBetweenKrajeAndParties(parties, kraje);
 

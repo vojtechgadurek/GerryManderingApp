@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.Tracing;
+using System.Drawing;
 
 namespace volebniApka;
 
@@ -11,6 +12,12 @@ public class SuperId
     {
         this.obec = obec;
         this.okrsek = okrsek;
-        name = obec + "-" + okrsek;
+        name = GetSuperId(obec, this.okrsek);
+    }
+
+    public static string GetSuperId(string obec, string okrsek)
+    {
+        string name = obec + "-" + okrsek;
+        return name;
     }
 }

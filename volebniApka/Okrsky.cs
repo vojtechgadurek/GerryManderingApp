@@ -30,5 +30,29 @@ public class Okrsky
             stuff[id].votes.Add(party, votes);
         }
         stream.Close();
+    } 
+    public void ConnectData(IDictionary<string, Location> mapData, bool verbose)
+    {
+        ///Find where okresek are located from a locations
+        foreach (var okrsek in stuff.Values)
+        {
+            if (okrsek != null)
+            {
+                string superId = okrsek.superId.name;
+                if (mapData.ContainsKey(superId))
+                {
+                    okrsek.AddLocation(mapData[superId].GetLocation());
+                }
+                else
+                {
+                    if (verbose)
+                    {
+                        Console.WriteLine("Error: Location not found " + superId);
+                    }
+
+                    okrsek.status = Status.NOT_FOUND;
+                }
+            }
+        }
     }
 }

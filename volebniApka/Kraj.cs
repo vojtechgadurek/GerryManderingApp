@@ -4,10 +4,9 @@ public  class Kraj:VotingObject
 {
     public int color;
     public IDictionary<int,Okrsek> okrsky;
-    public int nParties;
     public int maxMandates;
 
-    public Kraj(int id, int nParties)
+    public Kraj(int id)
     {
         this.id = id;
         this.color = id;
