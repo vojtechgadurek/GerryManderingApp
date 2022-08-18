@@ -1,14 +1,20 @@
 ﻿namespace volebniApka;
 
-public class Parties:VotingObject {
+public class Parties
+{
+    public Counter votes = new Counter();
     public IDictionary<int, Party> stuff = new Dictionary<int, Party>();
-    public IDictionary<int, Party> succs;
+    public Parties succs;
+
+    public Parties()
+    {
+    }
 
     public Parties(string fileLocation)
     {
         StreamReader file = new StreamReader(fileLocation);
         string line;
-        
+
         while ((line = file.ReadLine()) != null)
         {
             string[] parts = line.Split("\t");
@@ -18,20 +24,22 @@ public class Parties:VotingObject {
 
         file.Close();
     }
-    public void addVotes(int first, int second, int votes)
+
+    public void AddVotes(int first, int second, int votes)
     {
-        stuff[first].votes.Add(second, votes);
+        stuff[first].AddVotes(second, votes);
         this.votes[second] += votes;
     }
-    public void SuccessfulParties( IList<float> percentageNeeded)
+
+    public Parties SuccessfulParties(IList<float> percentageNeeded, bool setSuccefulness)
     {
-        succs = new Dictionary<int, Party>();
+        succs = new Parties();
         foreach (var party in stuff.Values)
         {
             float percentage = ((float) party.votes.sum * 100 / (float) votes.sum);
 
             int bracket = party.nCoalitionParties;
-            
+
             /// The first 0 collum will be applied for all parties over
             if (bracket >= percentageNeeded.Count)
             {
@@ -40,14 +48,44 @@ public class Parties:VotingObject {
 
             if (percentage < percentageNeeded[bracket])
             {
-                party.SetSuccesfullness(false);
+                if (setSuccefulness)
+                {
+                    party.SetSuccesfullness(false);
+                }
             }
             else
             {
-                party.SetSuccesfullness(true);
-                succs.Add(party.id, party);
+                if (setSuccefulness)
+                {
+                    party.SetSuccesfullness(true);
+                }
+
+                succs.AddParty(party);
+            }
+        }
+
+        return succs;
+    }
+
+    public Counter succsVotes()
+    {
+        return succs.votes;
+    }
+
+    public void AddParty(Party party)
+    {
+        stuff.Add(party.id, party);
+        votes.Add(party.id, party.votes.sum);
+    }
+
+    public void LoadDataFromKraje(Kraje kraje)
+    {
+        foreach (var kraj in kraje.stuff)
+        {
+            foreach (var party in stuff)
+            {
+                AddVotes(party.Key, kraj.Key, kraj.Value.votes[party.Key]);
             }
         }
     }
-
 }

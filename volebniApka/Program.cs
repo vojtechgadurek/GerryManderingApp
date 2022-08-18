@@ -71,11 +71,6 @@ class VolebniApka
 
     #region LoadFuncs
 
-    public static string FsuperId(string obec, string okrsek)
-    {
-        return obec + "-" + okrsek;
-    }
-
     static void CheckDataGood(Okrsky okrsky, IDictionary<string, Location> locations,
         bool verbose)
     {
@@ -85,33 +80,6 @@ class VolebniApka
 
     #endregion
 
-    static void CreateMap(IDictionary<int, Okrsek> votingData, int mapWidth, int mapHeight, string fileLocation)
-    {
-        Bitmap bitmap = new Bitmap(mapWidth + 1, mapHeight + 1);
-        foreach (var okrsek in votingData)
-        {
-            if (okrsek.Value.status == Status.LOCAL)
-            {
-                bitmap.SetPixel(okrsek.Value.relativeMapPoint[0], okrsek.Value.relativeMapPoint[1],
-                    //Constant for color 
-                    Color.FromArgb(255, 2, 229));
-            }
-        }
-
-        //Draw bitmap
-        bitmap.Save(fileLocation);
-    }
-
-    static void MoveDataBetweenKrajeAndParties(Parties parties, IDictionary<int, Kraj> kraje)
-    {
-        foreach (var kraj in kraje)
-        {
-            foreach (var party in parties.stuff)
-            {
-                parties.addVotes(party.Key, kraj.Key, kraj.Value.votes[party.Key]);
-            }
-        }
-    }
 
     static IDictionary<int, int> DeHont(IDictionary<int, int> votesParties, int mandates)
     {
@@ -170,85 +138,6 @@ class VolebniApka
             foreach (var party in mandatesParties)
             {
                 successfulParties[party.Key].mandates.Add(kraj.Key, party.Value);
-            }
-        }
-    }
-
-    static void MandatesToKraje(IDictionary<int, Kraj> kraje, IDictionary<int, int> votesKraje, int mandates)
-    {
-        Skrutinium divideMandatesKraje = new Skrutinium(mandates, votesKraje, 0, false, false);
-        foreach (var kraj in kraje)
-        {
-            kraj.Value.mandates.Add(kraj.Key, divideMandatesKraje.mandates[kraj.Key]);
-        }
-    }
-
-    static void CalculateElectionCz2021Ps(IDictionary<int, Kraj> kraje, int mandates, Parties parties,
-        float[] percentageNeeded)
-    {
-        //Number of mandates in each kraj
-        if (mandates < 1)
-        {
-            throw new Exception("Error: Mandates must be greater than 0");
-            return;
-        }
-
-        IDictionary<int, int> votesKraje = new Dictionary<int, int>();
-        foreach (var kraj in kraje)
-        {
-            votesKraje.Add(kraj.Key, kraj.Value.votes.sum);
-        }
-
-        MandatesToKraje(kraje, votesKraje, mandates);
-
-        parties.SuccessfulParties(percentageNeeded);
-        IDictionary<int, Party> successfulParties = parties.succs;
-        int leftoverMandates = 0;
-
-        foreach (var kraj in kraje)
-        {
-            IDictionary<int, int> votesKrajSuccessfulParties = new Dictionary<int, int>();
-            foreach (var party in successfulParties)
-            {
-                votesKrajSuccessfulParties.Add(party.Key, kraj.Value.votes[party.Key]);
-            }
-
-            Skrutinium firstSkrutinium =
-                new Skrutinium(kraj.Value.mandates.sum, votesKrajSuccessfulParties, 2, false, true);
-            foreach (var party in successfulParties)
-            {
-                party.Value.mandates.Add(kraj.Key, firstSkrutinium.mandates[party.Key]);
-                party.Value.leftoverVotes.Add(kraj.Key, firstSkrutinium.leftoverVotes[party.Key]);
-            }
-
-            leftoverMandates += firstSkrutinium.maxMandates - firstSkrutinium.mandates.sum;
-        }
-
-        Skrutinium secondSkrutinium = new Skrutinium(leftoverMandates, 1, false, false);
-
-        foreach (var party in successfulParties)
-        {
-            secondSkrutinium.votes.Add(party.Key, party.Value.leftoverVotes.sum);
-        }
-
-        secondSkrutinium.CalculateMandates();
-
-        foreach (var party in successfulParties)
-        {
-            int partyLeftOverMandates = secondSkrutinium.mandates.Get(party.Key);
-            if (partyLeftOverMandates > 0)
-            {
-                var leftoverVotesSorted = party.Value.leftoverVotes.stuff.OrderByDescending(x => x.Value);
-                foreach (var leftoverParty in leftoverVotesSorted)
-                {
-                    if (partyLeftOverMandates <= 0)
-                    {
-                        break;
-                    }
-
-                    party.Value.mandates.Add(leftoverParty.Key, 1);
-                    partyLeftOverMandates--;
-                }
             }
         }
     }
@@ -338,22 +227,21 @@ class VolebniApka
         }
 
         //Tohle bych rád měl samostatně
-        CreateMap(votingData, mapWidth, mapHeight, mapFile);
+        Map.CreateMap(votingData, mapWidth, mapHeight, mapFile);
 
         //Open map of kraje
 
-        Kraje krajeX = new Kraje(okrsky, mapFile);
-        IDictionary<int, Kraj> kraje = krajeX.stuff;
+        Kraje kraje = new Kraje(okrsky, mapFile);
 
-        MoveDataBetweenKrajeAndParties(parties, kraje);
+        parties.LoadDataFromKraje(kraje);
 
+        Election election;
         if (votingMethod == 2021)
         {
-            CalculateElectionCz2021Ps(kraje, mandates, parties, percentageNeeded);
+            election = new ElectionCz2021Ps(mandates, parties, kraje, percentageNeeded);
         }
         else if (votingMethod == 2017)
         {
-            CalculateElectionCz2017Ps(kraje, mandates, parties, percentageNeeded);
         }
         else
         {

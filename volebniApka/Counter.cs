@@ -1,4 +1,6 @@
-﻿namespace volebniApka;
+﻿using Microsoft.VisualBasic.CompilerServices;
+
+namespace volebniApka;
 
 public class Counter
 {
@@ -24,12 +26,14 @@ public class Counter
             stuff.Add(key, value);
             sum += value;
         }
-    } 
+    }
+
     public void Set(IDictionary<int, int> stuff)
     {
         this.stuff = stuff;
         sum = stuff.Sum(x => x.Value);
     }
+
     public void Add(int id, int number)
     {
         sum += number;
@@ -58,5 +62,15 @@ public class Counter
     public int Sum()
     {
         return sum;
+    }
+
+    static public Counter operator +(Counter a, Counter b)
+    {
+        foreach (var data in b.stuff)
+        {
+            a.Add(data.Key, data.Value);
+        }
+
+        return a;
     }
 }
