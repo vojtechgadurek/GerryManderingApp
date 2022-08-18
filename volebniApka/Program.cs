@@ -80,68 +80,6 @@ class VolebniApka
 
     #endregion
 
-
-    static IDictionary<int, int> DeHont(IDictionary<int, int> votesParties, int mandates)
-    {
-        IDictionary<int, int> mandatesParties = new Dictionary<int, int>();
-        SortedList<int, int> votesPartiesSorted = new SortedList<int, int>();
-        foreach (var party in votesParties)
-        {
-            votesPartiesSorted.Add(party.Value, party.Key);
-            mandatesParties.Add(party.Key, 0);
-        }
-
-        while (mandates > 0)
-        {
-            var party = votesPartiesSorted.Last();
-            int key = party.Value;
-            int value = party.Key;
-            mandatesParties[key]++;
-            votesPartiesSorted.Remove(value);
-            votesPartiesSorted.Add(votesParties[key] / (mandatesParties[key] + 1), party.Value);
-            mandates--;
-        }
-
-        return mandatesParties;
-    }
-
-    static void CalculateElectionCz2017Ps(IDictionary<int, Kraj> kraje, int mandates, Parties parties,
-        float[] percentageNeeded)
-    {
-        //Number of mandates in each kraj
-        if (mandates < 1)
-        {
-            throw new Exception("Error: Mandates must be greater than 0");
-            return;
-        }
-
-        IDictionary<int, int> votesKraje = new Dictionary<int, int>();
-        foreach (var kraj in kraje)
-        {
-            votesKraje.Add(kraj.Key, kraj.Value.votes.sum);
-        }
-
-        MandatesToKraje(kraje, votesKraje, mandates);
-
-        parties.SuccessfulParties(percentageNeeded);
-        IDictionary<int, Party> successfulParties = parties.succs;
-
-        foreach (var kraj in kraje)
-        {
-            IDictionary<int, int> votesParties = new Dictionary<int, int>();
-            foreach (var party in successfulParties)
-            {
-                votesParties.Add(party.Key, kraj.Value.votes[party.Key]);
-            }
-
-            IDictionary<int, int> mandatesParties = DeHont(votesParties, kraj.Value.mandates.sum);
-            foreach (var party in mandatesParties)
-            {
-                successfulParties[party.Key].mandates.Add(kraj.Key, party.Value);
-            }
-        }
-    }
-
     static void PrintResults(Parties parties)
     {
         Console.WriteLine(
@@ -242,12 +180,14 @@ class VolebniApka
         }
         else if (votingMethod == 2017)
         {
+            election = new ElectionCz2017Ps(mandates, parties, kraje, percentageNeeded);
         }
         else
         {
             throw new Exception("Wrong voting method");
         }
 
+        election.RunElection();
         PrintResults(parties);
     }
 }

@@ -3,7 +3,12 @@
 public class Parties
 {
     public Counter votes = new Counter();
+
+    /// <summary>
+    /// It is expected from votes to be unchangeble in nature 
+    /// </summary>
     public IDictionary<int, Party> stuff = new Dictionary<int, Party>();
+
     public Parties succs;
 
     public Parties()

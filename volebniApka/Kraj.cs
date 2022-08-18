@@ -1,10 +1,9 @@
 ﻿namespace volebniApka;
 
-public  class Kraj:VotingObject
+public class Kraj : VotingObject
 {
     public int color;
-    public IDictionary<int,Okrsek> okrsky;
-    public int maxMandates;
+    public IDictionary<int, Okrsek> okrsky;
 
     public Kraj(int id)
     {
@@ -19,6 +18,7 @@ public  class Kraj:VotingObject
         {
             throw new Exception("Okrsek " + okrsek.id + " already exists in Kraj " + id);
         }
+
         this.okrsky.Add(okrsek.id, okrsek);
         foreach (var party in okrsek.votes.stuff)
         {

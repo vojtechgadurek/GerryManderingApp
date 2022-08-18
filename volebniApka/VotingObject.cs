@@ -7,7 +7,7 @@ using volebniApka;
 public abstract class VotingObject : IVotingObject
 {
     public int id;
-    public int maxManadates = 0;
+    public int maxMandates = 0;
     public string name;
     public Counter mandates = new Counter();
     public Counter votes = new Counter();
@@ -15,7 +15,12 @@ public abstract class VotingObject : IVotingObject
 
     public void SetMaxMandates(int maxMandates)
     {
-        this.maxManadates = maxMandates;
+        this.maxMandates = maxMandates;
+    }
+
+    public Counter GetVotes()
+    {
+        return votes;
     }
 
     public int GetVotes(int krajId)
