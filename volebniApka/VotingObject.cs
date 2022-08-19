@@ -13,6 +13,12 @@ public abstract class VotingObject : IVotingObject
     public Counter votes = new Counter();
     public Counter leftoverVotes = new Counter();
 
+
+    public int GetId()
+    {
+        return id;
+    }
+
     public void SetMaxMandates(int maxMandates)
     {
         this.maxMandates = maxMandates;
@@ -104,4 +110,6 @@ public interface IVotingObject
     public void SetLeftoverVotes(IDictionary<int, int> stuff);
     public int SumLeftoverVotes();
     public void SetMaxMandates(int maxMandates);
+
+    public int GetId();
 }

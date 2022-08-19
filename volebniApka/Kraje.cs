@@ -3,7 +3,7 @@
 using volebniApka;
 using System.Drawing;
 
-public class Kraje
+public class Kraje : VotingObjectGroup
 {
     public IDictionary<int, Kraj> stuff = new Dictionary<int, Kraj>();
 
@@ -24,25 +24,6 @@ public class Kraje
 
                 stuff[kraj].AddOkrsek(okrsek);
             }
-        }
-    }
-
-    public Counter GetVotes()
-    {
-        Counter votes = new Counter();
-        foreach (var kraj in stuff.Values)
-        {
-            votes.Add(kraj.id, kraj.SumVotes());
-        }
-
-        return votes;
-    }
-
-    public void SetMaxMandates(Counter mandates)
-    {
-        foreach (var mandate in mandates.stuff)
-        {
-            stuff[mandate.Key].SetMaxMandates(mandate.Value);
         }
     }
 }

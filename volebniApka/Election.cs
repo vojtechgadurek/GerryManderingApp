@@ -22,7 +22,7 @@ public abstract class Election
         Test();
     }
 
-    public void MandatesToKraje()
+    public void MandatesToKraje() // Tady chci něco jako IVotingObjectDictionary
     {
         Skrutinium divideMandatesKraje = new Skrutinium(maxMandates, kraje.GetVotes(), 0, false, false);
         kraje.SetMaxMandates(divideMandatesKraje.mandates);
@@ -123,6 +123,29 @@ public class ElectionCz2021Ps : Election
 public class ElectionCz2017Ps : Election
 {
     public ElectionCz2017Ps(int maxMandates, Parties parties, Kraje kraje, float[] percentageNeeded) : base(maxMandates,
+        parties, kraje, percentageNeeded)
+    {
+    }
+
+    public override void RunElection()
+    {
+        MandatesToKraje();
+
+        var successfulParties = parties.succs;
+
+        foreach (var kraj in kraje.stuff)
+        {
+            Counter mandates = DeHont(kraj.Value.GetVotes(), kraj.Value.SumMandates());
+            parties.AddMandates(mandates);
+        }
+    }
+}
+
+public class ElectionCz2017PsRev : Election
+{
+    //Dividest first mandates between parties and between kraje //In Development
+    public ElectionCz2017PsRev(int maxMandates, Parties parties, Kraje kraje, float[] percentageNeeded) : base(
+        maxMandates,
         parties, kraje, percentageNeeded)
     {
     }

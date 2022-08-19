@@ -1,6 +1,6 @@
 ﻿namespace volebniApka;
 
-public class Parties
+public class Parties : VotingObjectGroup
 {
     public Counter votes = new Counter();
 
