@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualBasic.CompilerServices;
+﻿using System.Diagnostics.Tracing;
+using Microsoft.VisualBasic.CompilerServices;
 
 namespace volebniApka;
 
@@ -32,6 +33,12 @@ public class Counter
     {
         this.stuff = stuff;
         sum = stuff.Sum(x => x.Value);
+    }
+
+    public void Set(Counter counter)
+    {
+        this.stuff = counter.stuff;
+        sum = counter.sum;
     }
 
     public void Add(int id, int number)

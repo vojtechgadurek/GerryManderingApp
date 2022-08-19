@@ -136,7 +136,7 @@ public class ElectionCz2017Ps : Election
         foreach (var kraj in kraje.stuff)
         {
             Counter mandates = DeHont(kraj.Value.GetVotes(), kraj.Value.SumMandates());
-            parties.AddMandates(mandates);
+            parties.AddOver("mandates", kraj.Key, mandates);
         }
     }
 }

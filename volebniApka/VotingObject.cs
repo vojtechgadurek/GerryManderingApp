@@ -1,4 +1,8 @@
-﻿using System.Dynamic;
+﻿using System.ComponentModel.Design;
+using System.Dynamic;
+using System.Net.Sockets;
+using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace volebniApka;
 
@@ -13,6 +17,34 @@ public abstract class VotingObject : IVotingObject
     public Counter votes = new Counter();
     public Counter leftoverVotes = new Counter();
 
+    private Counter GetCounterByName(string where)
+    {
+        return (Counter) this.GetType().GetProperty(where).GetValue(this, null);
+    }
+
+    public void Add(string where, Counter counter)
+    {
+        Counter data = GetCounterByName(where);
+        data += counter;
+    }
+
+    public void Set(string where, Counter counter)
+    {
+        Counter data = GetCounterByName(where);
+        data.Set(counter);
+    }
+
+    public void Add(string where, int id, int value)
+    {
+        Counter data = GetCounterByName(where);
+        data[id] += value;
+    }
+
+    public void Set(string where, int id, int value)
+    {
+        Counter data = GetCounterByName(where);
+        data[id] = value;
+    }
 
     public int GetId()
     {
@@ -97,6 +129,10 @@ public abstract class VotingObject : IVotingObject
 
 public interface IVotingObject
 {
+    public void Set(string where, Counter counter);
+    public void Set(string where, int id, int value);
+    public void Add(string where, Counter counter);
+    public void Add(string where, int id, int value);
     public int GetVotes(int krajId);
     public void SetVotes(IDictionary<int, int> stuff);
     public void AddVotes(int krajId, int votes);
