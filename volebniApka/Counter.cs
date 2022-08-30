@@ -1,9 +1,10 @@
-﻿using System.Diagnostics.Tracing;
+﻿using System.Collections;
+using System.Diagnostics.Tracing;
 using Microsoft.VisualBasic.CompilerServices;
 
 namespace volebniApka;
 
-public class Counter
+public class Counter : IEnumerable<int>
 {
     public int sum = 0;
     public IDictionary<int, int> stuff = new Dictionary<int, int>();
@@ -79,5 +80,15 @@ public class Counter
         }
 
         return a;
+    }
+
+    public IEnumerator<int> GetEnumerator()
+    {
+        return stuff.Values.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }

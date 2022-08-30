@@ -1,14 +1,14 @@
-﻿namespace volebniApka;
+﻿using System.Dynamic;
+
+namespace volebniApka;
 
 public class Parties : VotingObjectGroup
 {
     public Counter votes = new Counter();
 
     /// <summary>
-    /// It is expected from votes to be unchangeble in nature 
+    /// It is expected from votes to be unchangeable in nature 
     /// </summary>
-    public IDictionary<int, Party> stuff = new Dictionary<int, Party>();
-
     public Parties succs;
 
     public Parties()
@@ -39,9 +39,9 @@ public class Parties : VotingObjectGroup
     public Parties SuccessfulParties(IList<float> percentageNeeded, bool setSuccefulness)
     {
         succs = new Parties();
-        foreach (var party in stuff.Values)
+        foreach (Party party in stuff.Values)
         {
-            float percentage = ((float) party.votes.sum * 100 / (float) votes.sum);
+            float percentage = ((float) party.votes.Sum() * 100 / (float) votes.Sum());
 
             int bracket = party.nCoalitionParties;
 
@@ -79,18 +79,16 @@ public class Parties : VotingObjectGroup
 
     public void AddParty(Party party)
     {
-        stuff.Add(party.id, party);
-        votes.Add(party.id, party.votes.sum);
+        this.Add(party);
+        votes.Add(party.id, party.votes.Sum());
     }
 
     public void LoadDataFromKraje(Kraje kraje)
     {
-        foreach (var kraj in kraje.stuff)
+        foreach (Kraj kraj in kraje)
         {
-            foreach (var party in stuff)
-            {
-                AddVotes(party.Key, kraj.Key, kraj.Value.votes[party.Key]);
-            }
+            AddOver("votes", kraj.id, kraj.votes);
+            votes += kraj.Get("votes");
         }
     }
 }

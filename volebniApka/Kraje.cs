@@ -5,8 +5,6 @@ using System.Drawing;
 
 public class Kraje : VotingObjectGroup
 {
-    public IDictionary<int, Kraj> stuff = new Dictionary<int, Kraj>();
-
     public Kraje(Okrsky okrsky, string mapFile)
     {
         Bitmap mapKraje = new Bitmap(mapFile);
@@ -22,7 +20,7 @@ public class Kraje : VotingObjectGroup
                     stuff.Add(kraj, new Kraj(kraj));
                 }
 
-                stuff[kraj].AddOkrsek(okrsek);
+                ((Kraj) stuff[kraj]).AddOkrsek(okrsek);
             }
         }
     }

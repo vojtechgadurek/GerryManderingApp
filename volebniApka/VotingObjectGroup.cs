@@ -1,8 +1,16 @@
-﻿namespace volebniApka;
+﻿using System.Collections;
+using System.Net;
 
-public abstract class VotingObjectGroup
+namespace volebniApka;
+
+public abstract class VotingObjectGroup : IEnumerable<IVotingObject>
 {
-    IDictionary<int, IVotingObject> stuff = new Dictionary<int, IVotingObject>();
+    public IDictionary<int, IVotingObject> stuff = new Dictionary<int, IVotingObject>();
+
+    protected void PushNewStuff(IDictionary<int, IVotingObject> stuff)
+    {
+        this.stuff = stuff;
+    }
 
     public void SetMaxMandates(Counter mandates)
     {
@@ -59,5 +67,21 @@ public abstract class VotingObjectGroup
     {
         /// will add to specific object all at it
         stuff[id].Set(where, id, counter[id]);
+    }
+
+    public IDictionary<int, IVotingObject> GetStuff()
+    {
+        return stuff;
+    }
+
+    public IEnumerator<IVotingObject> GetEnumerator()
+    {
+        var enumerator = stuff.Values.GetEnumerator();
+        return enumerator;
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }

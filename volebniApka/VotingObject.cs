@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.Design;
+using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
 using System.Net.Sockets;
 using System.Reflection;
@@ -16,10 +17,18 @@ public abstract class VotingObject : IVotingObject
     public Counter mandates = new Counter();
     public Counter votes = new Counter();
     public Counter leftoverVotes = new Counter();
+    public IDictionary<string, Counter> counters = new Dictionary<string, Counter>();
+
+    public VotingObject()
+    {
+        counters.Add("votes", votes);
+        counters.Add("leftoverVotes", leftoverVotes);
+        counters.Add("mandates", mandates);
+    }
 
     private Counter GetCounterByName(string where)
     {
-        return (Counter) this.GetType().GetProperty(where).GetValue(this, null);
+        return counters[where];
     }
 
     public void Add(string where, Counter counter)
@@ -38,6 +47,12 @@ public abstract class VotingObject : IVotingObject
     {
         Counter data = GetCounterByName(where);
         data[id] += value;
+    }
+
+    public int Sum(string where)
+    {
+        Counter data = GetCounterByName(where);
+        return data.Sum();
     }
 
     public void Set(string where, int id, int value)
@@ -125,6 +140,16 @@ public abstract class VotingObject : IVotingObject
     {
         return this.leftoverVotes.Sum();
     }
+
+    public int GetMaxMandates()
+    {
+        return maxMandates;
+    }
+
+    public Counter Get(string where)
+    {
+        return GetCounterByName(where);
+    }
 }
 
 public interface IVotingObject
@@ -146,6 +171,8 @@ public interface IVotingObject
     public void SetLeftoverVotes(IDictionary<int, int> stuff);
     public int SumLeftoverVotes();
     public void SetMaxMandates(int maxMandates);
-
+    public int GetMaxMandates();
     public int GetId();
+    public Counter Get(string where);
+    public int Sum(string where);
 }

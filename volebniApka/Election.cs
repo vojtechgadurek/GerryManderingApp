@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.IO.Compression;
+using System.Runtime.CompilerServices;
 using volebniApka;
 
 namespace volebniApka;
@@ -18,34 +19,63 @@ public abstract class Election
         this.parties = parties;
         this.kraje = kraje;
         this.percentageNeeded = percentageNeeded;
-        parties.SuccessfulParties(percentageNeeded, true);
         Test();
     }
 
     public void MandatesToKraje() // Tady chci něco jako IVotingObjectDictionary
     {
         Skrutinium divideMandatesKraje = new Skrutinium(maxMandates, kraje.GetVotes(), 0, false, false);
-        kraje.SetMaxMandates(divideMandatesKraje.mandates);
+        kraje.SetMaxMandates(divideMandatesKraje.Get("mandates"));
     }
 
     public Counter DeHont(Counter votes, int mandatesToGive)
     {
+        //I need here a heap like structure to get log(n) search time for the maximum, key => number of votes / by kvota, value => party.id
         Counter mandates = new Counter();
-        SortedList<int, int> votesPartiesSorted = new SortedList<int, int>();
+        SortedList<int, IList<int>> votesPartiesSorted = new SortedList<int, IList<int>>();
         foreach (var party in votes.stuff)
         {
-            votesPartiesSorted.Add(party.Value, party.Key);
+            //This is not acctually legitimate implementation as not being random
+            try
+            {
+                votesPartiesSorted.Add(party.Value, new List<int>());
+            }
+            finally
+            {
+                votesPartiesSorted[party.Value].Add(party.Key);
+            }
+
             mandates.Add(party.Key, 0);
         }
 
         while (mandatesToGive > 0)
         {
-            var party = votesPartiesSorted.Last();
-            int key = party.Value;
+            ///AAAAAAA what I have done here?
+            KeyValuePair<int, IList<int>> party = votesPartiesSorted.Last();
+            int key = party.Value.Last();
             int value = party.Key;
             mandates[key]++;
-            votesPartiesSorted.Remove(value);
-            votesPartiesSorted.Add(votes[key] / (mandates[key] + 1), party.Value);
+            if (party.Value.Count <= 1)
+            {
+                votesPartiesSorted.Remove(value);
+            }
+            else
+            {
+                party.Value.RemoveAt(party.Value.Count - 1);
+            }
+
+            try
+            {
+                votesPartiesSorted.Add(votes[key] / (mandates[key] + 1), new List<int>());
+            }
+            catch
+            {
+            }
+            finally
+            {
+                votesPartiesSorted[votes[key] / (mandates[key] + 1)].Add(key);
+            }
+
             mandatesToGive--;
         }
 
@@ -77,7 +107,8 @@ public class ElectionCz2021Ps : Election
 
     public override void RunElection()
     {
-        var successfulParties = parties.succs;
+        var successfulParties = parties.SuccessfulParties(percentageNeeded, true);
+        ;
         ///Divides mandates to kraje to be divied between parties
         MandatesToKraje();
 
@@ -85,14 +116,14 @@ public class ElectionCz2021Ps : Election
         Skrutinium secondSkrutinium = new Skrutinium(maxMandates, 1, false, false);
 
         //There we run a skrutinium for all kraje
-        foreach (var kraj in kraje.stuff)
+        foreach (Kraj kraj in kraje)
         {
-            Skrutinium firstSkrutinium = new Skrutinium(kraj.Value.maxMandates, parties.succsVotes(), 2, false, true);
+            Skrutinium firstSkrutinium = new Skrutinium(kraj.maxMandates, parties.succsVotes(), 2, false, true);
 
-            foreach (var party in successfulParties.stuff)
+            foreach (var party in successfulParties)
             {
-                party.Value.AddMandates(kraj.Key, firstSkrutinium.mandates[party.Key]);
-                party.Value.AddLeftoverVotes(kraj.Key, firstSkrutinium.leftoverVotes[party.Key]);
+                party.AddMandates(kraj.GetId(), firstSkrutinium.mandates[party.GetId()]);
+                party.AddLeftoverVotes(kraj.GetId(), firstSkrutinium.leftoverVotes[party.GetId()]);
             }
 
             secondSkrutinium.AddMaxMandates(firstSkrutinium.maxMandates - firstSkrutinium.mandates.sum);
@@ -100,9 +131,9 @@ public class ElectionCz2021Ps : Election
 
         //Now we run second skrutinium
         secondSkrutinium.CalculateMandates();
-        foreach (var party in successfulParties.stuff)
+        foreach (Party party in successfulParties)
         {
-            secondSkrutinium.AddVotes(party.Key, party.Value.leftoverVotes.sum);
+            secondSkrutinium.AddVotes(party.id, party.leftoverVotes.Sum());
         }
 
         secondSkrutinium.CalculateMandates();
@@ -110,12 +141,12 @@ public class ElectionCz2021Ps : Election
         //Now we have to issue mandates from second skrutinium to party candidates with most lefover votes
 
 
-        foreach (var party in successfulParties.stuff)
+        foreach (Party party in successfulParties)
         {
-            Skrutinium thirdSkrutinium = new Skrutinium(secondSkrutinium.GetMandates(party.Key), 0, false, false);
-            thirdSkrutinium.SetVotes(party.Value.leftoverVotes);
+            Skrutinium thirdSkrutinium = new Skrutinium(secondSkrutinium.GetMandates(party.GetId()), 0, false, false);
+            thirdSkrutinium.SetVotes(party.leftoverVotes);
             thirdSkrutinium.GiveMandatesFromMost();
-            party.Value.AddMandates(thirdSkrutinium.mandates);
+            party.AddMandates(thirdSkrutinium.mandates);
         }
     }
 }
@@ -131,37 +162,18 @@ public class ElectionCz2017Ps : Election
     {
         MandatesToKraje();
 
-        var successfulParties = parties.succs;
+        var successfulParties = parties.SuccessfulParties(percentageNeeded, true);
 
-        foreach (var kraj in kraje.stuff)
+        foreach (Kraj kraj in kraje)
         {
-            Counter mandates = DeHont(kraj.Value.GetVotes(), kraj.Value.SumMandates());
-            parties.AddOver("mandates", kraj.Key, mandates);
-        }
-    }
-}
-
-public class ElectionCz2017PsRev : Election
-{
-    //Dividest first mandates between parties and between kraje //In Development
-    public ElectionCz2017PsRev(int maxMandates, Parties parties, Kraje kraje, float[] percentageNeeded) : base(
-        maxMandates,
-        parties, kraje, percentageNeeded)
-    {
-    }
-
-    public override void RunElection()
-    {
-        MandatesToKraje();
-
-        var successfulParties = parties.succs;
-
-        foreach (var kraj in kraje.stuff)
-        {
-            foreach (var party in DeHont(kraj.Value.GetVotes(), kraj.Value.SumMandates()).stuff)
+            Counter votes = new Counter();
+            foreach (Party party in successfulParties)
             {
-                parties.stuff[party.Key].AddMandates(kraj.Key, party.Value);
+                votes.Add(party.id, party.GetVotes(kraj.GetId()));
             }
+
+            Counter mandates = DeHont(votes, kraj.GetMaxMandates());
+            parties.AddOver("mandates", kraj.GetId(), mandates);
         }
     }
 }

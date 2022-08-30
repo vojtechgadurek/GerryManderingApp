@@ -84,12 +84,12 @@ class VolebniApka
     {
         Console.WriteLine(
             "-----------------------------------------------------------------------------------------------------------------------");
-        Console.WriteLine("Mandates isused: " + parties.stuff.Values.Sum(x => x.mandates.sum));
+        Console.WriteLine("Mandates isused: " + parties.GetStuff().Sum(x => x.Value.SumMandates()));
         Console.WriteLine("Id\tMan.\tVotes\tSucc.\tName");
-        foreach (var party in parties.stuff)
+        foreach (Party party in parties)
         {
             Console.WriteLine(
-                $"{party.Value.id}\t{party.Value.mandates.sum}\t{party.Value.votes.sum}\t{party.Value.isSuccesfull}\t{party.Value.name}");
+                $"{party.id}\t{party.mandates.sum}\t{party.votes.sum}\t{party.isSuccesfull}\t{party.name}");
         }
 
         Console.WriteLine(
