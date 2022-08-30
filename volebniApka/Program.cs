@@ -182,6 +182,14 @@ class VolebniApka
         {
             election = new ElectionCz2017Ps(mandates, parties, kraje, percentageNeeded);
         }
+        else if (votingMethod == 12017)
+        {
+            election = new ElectionCz2017PsRev(mandates, parties, kraje, percentageNeeded);
+        }
+        else if (votingMethod == 1)
+        {
+            election = new ElectionFirstPastThePost(mandates, parties, kraje, percentageNeeded);
+        }
         else
         {
             throw new Exception("Wrong voting method");

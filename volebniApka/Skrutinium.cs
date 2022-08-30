@@ -7,7 +7,6 @@ class Skrutinium : VotingObject
     public int parties;
     public int kvotaNumber;
     private int kvota;
-    public int maxMandates = 0;
     private bool _mandateOverflowOk;
     private bool _mandateUnderflowOk;
 
@@ -71,14 +70,17 @@ class Skrutinium : VotingObject
         /// must be solved. Also we can give less mandatates => thus this also has to be solved. Sometimes we dont want to enforce, these rules. One can
         /// use _mandateOverflowOk and _mandateUnderflowOk to disable these rules.
         IOrderedEnumerable<KeyValuePair<int, int>> ordered;
-        int toAdd = maxMandates - mandates.sum;
+        int toAdd = maxMandates - mandates.Sum();
+        int add = 1;
         if (toAdd > 0 && (!_mandateUnderflowOk))
         {
             ordered = leftoverVotes.stuff.OrderByDescending(x => x.Value);
         }
         else if (toAdd < 0 && (!_mandateOverflowOk))
         {
-            ordered = leftoverVotes.stuff.OrderBy(x => x.Value);
+            //Get rid of zero mandates parties
+            ordered = leftoverVotes.stuff.Where(x => mandates.Get(x.Key) != 0).OrderBy(x => x.Value);
+            add = -1;
         }
 
         else
@@ -88,12 +90,12 @@ class Skrutinium : VotingObject
 
         foreach (var party in ordered)
         {
-            if (maxMandates - mandates.sum == 0)
+            if (maxMandates - mandates.Sum() == 0)
             {
                 break;
             }
 
-            mandates.Add(party.Key, 1);
+            mandates.Add(party.Key, add);
         }
     }
 
@@ -104,8 +106,11 @@ class Skrutinium : VotingObject
 
     public void CalculateMandates()
     {
-        CalculateKvota();
-        CalculateMandatesParties();
-        FixNotEqualMandates();
+        if (maxMandates > 0)
+        {
+            CalculateKvota();
+            CalculateMandatesParties();
+            FixNotEqualMandates();
+        }
     }
 }

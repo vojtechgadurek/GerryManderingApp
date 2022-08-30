@@ -69,6 +69,11 @@ public abstract class VotingObjectGroup : IEnumerable<IVotingObject>
         stuff[id].Set(where, id, counter[id]);
     }
 
+    public int SumMandates()
+    {
+        return stuff.Sum(x => x.Value.SumMandates());
+    }
+
     public IDictionary<int, IVotingObject> GetStuff()
     {
         return stuff;
@@ -83,5 +88,10 @@ public abstract class VotingObjectGroup : IEnumerable<IVotingObject>
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();
+    }
+
+    public void Add(string where, int idX, int idY, int votes)
+    {
+        stuff[idX].Add(where, idY, votes);
     }
 }

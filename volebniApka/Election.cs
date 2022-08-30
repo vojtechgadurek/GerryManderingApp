@@ -125,20 +125,19 @@ public class ElectionCz2021Ps : Election
                 party.AddMandates(kraj.GetId(), firstSkrutinium.mandates[party.GetId()]);
                 party.AddLeftoverVotes(kraj.GetId(), firstSkrutinium.leftoverVotes[party.GetId()]);
             }
-
-            secondSkrutinium.AddMaxMandates(firstSkrutinium.maxMandates - firstSkrutinium.mandates.sum);
         }
 
         //Now we run second skrutinium
-        secondSkrutinium.CalculateMandates();
         foreach (Party party in successfulParties)
         {
             secondSkrutinium.AddVotes(party.id, party.leftoverVotes.Sum());
         }
 
+        secondSkrutinium.SetMaxMandates(maxMandates - parties.SumMandates());
+
         secondSkrutinium.CalculateMandates();
 
-        //Now we have to issue mandates from second skrutinium to party candidates with most lefover votes
+        //Now we have to issue mandates from second skrutinium to party candidates with most leftover votes
 
 
         foreach (Party party in successfulParties)
@@ -146,6 +145,7 @@ public class ElectionCz2021Ps : Election
             Skrutinium thirdSkrutinium = new Skrutinium(secondSkrutinium.GetMandates(party.GetId()), 0, false, false);
             thirdSkrutinium.SetVotes(party.leftoverVotes);
             thirdSkrutinium.GiveMandatesFromMost();
+            thirdSkrutinium.CalculateMandates();
             party.AddMandates(thirdSkrutinium.mandates);
         }
     }
@@ -174,6 +174,57 @@ public class ElectionCz2017Ps : Election
 
             Counter mandates = DeHont(votes, kraj.GetMaxMandates());
             parties.AddOver("mandates", kraj.GetId(), mandates);
+        }
+    }
+}
+
+public class ElectionCz2017PsRev : Election
+{
+    //First divide mandates between parties, than bettwen kraje 
+    public ElectionCz2017PsRev(int maxMandates, Parties parties, Kraje kraje, float[] percentageNeeded) : base(
+        maxMandates,
+        parties, kraje, percentageNeeded)
+    {
+    }
+
+    public override void RunElection()
+    {
+        var successfulParties = parties.SuccessfulParties(percentageNeeded, true);
+        Counter partiesVotes = new Counter();
+        foreach (var party in successfulParties)
+        {
+            partiesVotes.Add(party.GetId(), party.SumVotes());
+        }
+
+        Counter partiesMandates = DeHont(partiesVotes, maxMandates);
+
+        foreach (var party in successfulParties)
+        {
+            Skrutinium skrutinium =
+                new Skrutinium(partiesMandates.Get(party.GetId()), party.Get("votes"), 0, false, false);
+            party.Add("mandates", skrutinium.Get("mandates"));
+        }
+    }
+}
+
+public class ElectionFirstPastThePost : Election
+{
+    //First divide mandates between parties, than bettwen kraje 
+    public ElectionFirstPastThePost(int maxMandates, Parties parties, Kraje kraje, float[] percentageNeeded) : base(
+        maxMandates,
+        parties, kraje, percentageNeeded)
+    {
+    }
+
+    public override void RunElection()
+    {
+        MandatesToKraje();
+        foreach (var kraj in kraje)
+        {
+            Counter votes = kraj.Get("votes");
+            var max = votes.stuff.Max(x => x.Value);
+            int key = votes.stuff.First(x => x.Value == max).Key;
+            parties.Add("mandates", key, kraj.GetId(), kraj.GetMaxMandates());
         }
     }
 }
