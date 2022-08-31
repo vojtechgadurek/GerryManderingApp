@@ -7,7 +7,7 @@ namespace volebniApka;
 public class Counter : IEnumerable<int>
 {
     public int sum = 0;
-    public IDictionary<int, int> stuff = new Dictionary<int, int>();
+    protected IDictionary<int, int> stuff = new Dictionary<int, int>();
 
     public int this[int key]
     {
@@ -53,6 +53,11 @@ public class Counter : IEnumerable<int>
         {
             stuff.Add(id, number);
         }
+    }
+
+    public IDictionary<int, int> GetStuff()
+    {
+        return stuff;
     }
 
     public int Get(int id)

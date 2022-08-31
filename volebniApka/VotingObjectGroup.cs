@@ -5,7 +5,7 @@ namespace volebniApka;
 
 public abstract class VotingObjectGroup : IEnumerable<IVotingObject>
 {
-    public IDictionary<int, IVotingObject> stuff = new Dictionary<int, IVotingObject>();
+    protected IDictionary<int, IVotingObject> stuff = new Dictionary<int, IVotingObject>();
 
     protected void PushNewStuff(IDictionary<int, IVotingObject> stuff)
     {
@@ -14,7 +14,7 @@ public abstract class VotingObjectGroup : IEnumerable<IVotingObject>
 
     public void SetMaxMandates(Counter mandates)
     {
-        foreach (var mandate in mandates.stuff)
+        foreach (var mandate in mandates.GetStuff())
         {
             stuff[mandate.Key].SetMaxMandates(mandate.Value);
         }

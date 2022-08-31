@@ -56,7 +56,7 @@ class Skrutinium : VotingObject
 
     private void CalculateMandatesParties()
     {
-        foreach (var party in votes.stuff)
+        foreach (var party in votes.GetStuff())
         {
             int mandatesAdd = party.Value / kvota;
             mandates.Add(party.Key, mandatesAdd);
@@ -74,12 +74,13 @@ class Skrutinium : VotingObject
         int add = 1;
         if (toAdd > 0 && (!_mandateUnderflowOk))
         {
-            ordered = leftoverVotes.stuff.OrderByDescending(x => x.Value);
+            ordered = leftoverVotes.GetStuff().OrderByDescending(x => x.Value);
         }
         else if (toAdd < 0 && (!_mandateOverflowOk))
         {
             //Get rid of zero mandates parties
-            ordered = leftoverVotes.stuff.Where(x => mandates.Get(x.Key) != 0).OrderBy(x => x.Value);
+            ordered = leftoverVotes.GetStuff().Where(x => mandates.Get(x.Key) != 0).OrderBy(x => x.Value);
+
             add = -1;
         }
 

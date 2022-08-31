@@ -80,14 +80,14 @@ public class Parties : VotingObjectGroup
     public void AddParty(Party party)
     {
         this.Add(party);
-        votes.Add(party.id, party.votes.Sum());
+        votes.Add(party.GetId(), party.votes.Sum());
     }
 
     public void LoadDataFromKraje(Kraje kraje)
     {
         foreach (Kraj kraj in kraje)
         {
-            AddOver("votes", kraj.id, kraj.votes);
+            AddOver("votes", kraj.GetId(), kraj.votes);
             votes += kraj.Get("votes");
         }
     }

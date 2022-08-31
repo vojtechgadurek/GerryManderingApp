@@ -11,7 +11,7 @@ using volebniApka;
 
 public abstract class VotingObject : IVotingObject
 {
-    public int id;
+    protected int id;
     public int maxMandates = 0;
     public string name;
     public Counter mandates = new Counter();

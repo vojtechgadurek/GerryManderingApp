@@ -20,7 +20,7 @@ public class Kraj : VotingObject
         }
 
         this.okrsky.Add(okrsek.id, okrsek);
-        foreach (var party in okrsek.votes.stuff)
+        foreach (var party in okrsek.votes.GetStuff())
         {
             this.votes.Add(party.Key, party.Value);
         }

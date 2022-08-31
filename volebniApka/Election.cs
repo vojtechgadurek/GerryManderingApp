@@ -33,7 +33,7 @@ public abstract class Election
         //I need here a heap like structure to get log(n) search time for the maximum, key => number of votes / by kvota, value => party.id
         Counter mandates = new Counter();
         SortedList<int, IList<int>> votesPartiesSorted = new SortedList<int, IList<int>>();
-        foreach (var party in votes.stuff)
+        foreach (var party in votes.GetStuff())
         {
             //This is not acctually legitimate implementation as not being random
             try
@@ -91,7 +91,7 @@ public abstract class Election
             throw new ArgumentException("Max mandates must be greater than 0");
         }
 
-        if (parties.stuff.Count < 1)
+        if (parties.Count() < 1)
         {
             throw new ArgumentException("There must be at least one party");
         }
@@ -130,7 +130,7 @@ public class ElectionCz2021Ps : Election
         //Now we run second skrutinium
         foreach (Party party in successfulParties)
         {
-            secondSkrutinium.AddVotes(party.id, party.leftoverVotes.Sum());
+            secondSkrutinium.AddVotes(party.GetId(), party.leftoverVotes.Sum());
         }
 
         secondSkrutinium.SetMaxMandates(maxMandates - parties.SumMandates());
@@ -169,7 +169,7 @@ public class ElectionCz2017Ps : Election
             Counter votes = new Counter();
             foreach (Party party in successfulParties)
             {
-                votes.Add(party.id, party.GetVotes(kraj.GetId()));
+                votes.Add(party.GetId(), party.GetVotes(kraj.GetId()));
             }
 
             Counter mandates = DeHont(votes, kraj.GetMaxMandates());
@@ -222,8 +222,8 @@ public class ElectionFirstPastThePost : Election
         foreach (var kraj in kraje)
         {
             Counter votes = kraj.Get("votes");
-            var max = votes.stuff.Max(x => x.Value);
-            int key = votes.stuff.First(x => x.Value == max).Key;
+            var max = votes.GetStuff().Max(x => x.Value);
+            int key = votes.GetStuff().First(x => x.Value == max).Key;
             parties.Add("mandates", key, kraj.GetId(), kraj.GetMaxMandates());
         }
     }

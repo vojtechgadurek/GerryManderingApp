@@ -89,7 +89,7 @@ class VolebniApka
         foreach (Party party in parties)
         {
             Console.WriteLine(
-                $"{party.id}\t{party.mandates.sum}\t{party.votes.sum}\t{party.isSuccesfull}\t{party.name}");
+                $"{party.GetId()}\t{party.mandates.sum}\t{party.votes.sum}\t{party.isSuccesfull}\t{party.name}");
         }
 
         Console.WriteLine(
