@@ -15,7 +15,10 @@ Dále v datech chybí k dnešku 127 okrsků, která se nezobrazují na mapě.
 
 Dále aplikace nepočítá úspěšné kandidáty, protože s ohledem na možnost upravovat volební kraje, tato funkcionalita postrádá smysl.
 
-Dále nefunguje pokud jsou rozměry mapy rozdílné. ###Používání programu Program očekává vyplnění souboru settings.txt v následujicím formátu.
+Dále nefunguje pokud jsou rozměry mapy rozdílné. 
+
+### Používání programu
+Program očekává vyplnění souboru settings.txt v následujicím formátu.
 
 ```
 map_file_name = *.bmp - název souboru s mapou kraje
