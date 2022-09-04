@@ -28,7 +28,9 @@ voting_method = N - na výběr je z let 2017 a 2021
 mandates = N - počet udělovaných mandátů
 percetage_to_be_successful = N,...,M - procento hlasů, které strana musí získat, 
 pro daný počet stran v koalici, jeli více stran v koalici než délka pole platí pro koalici
-poslední hranice
+první hranice
+create_map =  Bool - vytvoří se nová mapa
+run = Bool - spustí se výpočet
 Po vyplnění je možné spustit program.
 ```
 
@@ -86,12 +88,23 @@ Do krajů jsou nahrány data z okrsků.
 
 #### Výpočet voleb 
 
-Podle dané zvolené metody je zvolena metoda. Výsledky jsou uloženy do jednotlivých stran.
+Podle dané zvolené metody je zvolena metoda. Výsledky jsou uloženy do jednotlivých stran. 
 
 #### Tisk výsledků Vysledky jsou printovány z jednotlivých stran.
 
-
 ### Třídy
+
+### VotingObject a IVotingObject
+
+Je základní objekt, jeho smysl je hlasy, počet mandátů k  => přidělené mandátaty stranám. Můžeme si všimnout, že skrutinia, kraje i strany jsou si velmi podobné i proto jsou syny tohoto objektu. Interface umužnuje efektivní prácí a větší varialibitu. 
+
+### VotingObjectGroup
+
+Třída sjednocujicí všechny collections VotingObjektů a umožnujicí efektivní práci s němi.
+
+### Parties
+
+#### SuccesfullParties()
 
 #### Okrsek
 
