@@ -85,6 +85,16 @@ public class Okrsky
             }
         }
 
+        int votesLost = 0;
+        foreach (var okrsek in stuff)
+        {
+            if (okrsek.Value.status != Status.LOCAL)
+            {
+                votesLost += okrsek.Value.votes.Sum();
+            }
+        }
+
         Console.WriteLine("Missing locations: " + counter + " out of " + stuff.Count);
+        Console.WriteLine($"Lost votes: {votesLost}");
     }
 }

@@ -80,18 +80,27 @@ class VolebniApka
 
     #endregion
 
-    static void PrintResults(Parties parties)
+    static void PrintResults(Parties parties, Kraje kraje)
     {
         Action divider;
         divider = () => Console.WriteLine(
-            "-----------------------------------------------------------------------------------------------------------------------");
+            "--------------------------------------------------------------------------------------------------------------------");
         divider();
+
+
         Console.WriteLine("Mandates isused: " + parties.GetStuff().Sum(x => x.Value.SumMandates()));
         Console.WriteLine("Id\tMan.\tVotes\tSucc.\tName");
         foreach (Party party in parties)
         {
             Console.WriteLine(
-                $"{party.GetId()}\t{party.mandates.sum}\t{party.votes.sum}\t{party.isSuccesfull}\t{party.name}");
+                $"{party.GetId()}\t{party.SumMandates()}\t{party.votes.sum}\t{party.isSuccesfull}\t{party.name}");
+        }
+
+        divider();
+        foreach (var kraj in kraje)
+        {
+            Console.WriteLine(
+                $"{kraj.GetId()}\t{kraj.GetMaxMandates()}\t{kraj.SumVotes()}\t \t");
         }
 
         divider();
@@ -132,7 +141,13 @@ class VolebniApka
             .Select(x => float.Parse(x)).ToArray();
         //float[] percentageNeeded = new float[] {5, 5, 8, 11};
         //float[] percentageNeeded = new flota[] {5, 5, 10, 15}
+        bool createMap = (ReadConfigLine(configFile, "create_map").Equals("True"));
+        bool run = ReadConfigLine(configFile, "run").Equals("True");
         configFile.Close();
+
+        if (createMap)
+        {
+        }
 
         Parties parties = new Parties(partiesDataFile);
 
@@ -169,34 +184,36 @@ class VolebniApka
         Map.CreateMap(votingData, mapWidth, mapHeight, mapFile);
 
         //Open map of kraje
+        if (run)
+        {
+            Kraje kraje = new Kraje(okrsky, mapKrajeFile, mapWidth, mapHeight);
 
-        Kraje kraje = new Kraje(okrsky, mapKrajeFile, mapWidth, mapHeight);
+            parties.LoadDataFromKraje(kraje);
 
-        parties.LoadDataFromKraje(kraje);
+            Election election;
+            if (votingMethod == 2021)
+            {
+                election = new ElectionCz2021Ps(mandates, parties, kraje, percentageNeeded);
+            }
+            else if (votingMethod == 2017)
+            {
+                election = new ElectionCz2017Ps(mandates, parties, kraje, percentageNeeded);
+            }
+            else if (votingMethod == 12017)
+            {
+                election = new ElectionCz2017PsRev(mandates, parties, kraje, percentageNeeded);
+            }
+            else if (votingMethod == 1)
+            {
+                election = new ElectionFirstPastThePost(mandates, parties, kraje, percentageNeeded);
+            }
+            else
+            {
+                throw new Exception("Wrong voting method");
+            }
 
-        Election election;
-        if (votingMethod == 2021)
-        {
-            election = new ElectionCz2021Ps(mandates, parties, kraje, percentageNeeded);
+            election.RunElection();
+            PrintResults(parties, kraje);
         }
-        else if (votingMethod == 2017)
-        {
-            election = new ElectionCz2017Ps(mandates, parties, kraje, percentageNeeded);
-        }
-        else if (votingMethod == 12017)
-        {
-            election = new ElectionCz2017PsRev(mandates, parties, kraje, percentageNeeded);
-        }
-        else if (votingMethod == 1)
-        {
-            election = new ElectionFirstPastThePost(mandates, parties, kraje, percentageNeeded);
-        }
-        else
-        {
-            throw new Exception("Wrong voting method");
-        }
-
-        election.RunElection();
-        PrintResults(parties);
     }
 }

@@ -61,24 +61,24 @@ public class Okrsek
 
             if (heightEx / height > widthEx / width)
             {
-                divider = heightEx;
+                divider = heightEx / height + 1;
             }
             else
             {
-                divider = widthEx;
+                divider = widthEx / width + 1;
             }
 
             this.relativeMapPoint = new List<int>
             {
-                (mapPoint[0] - extremes.minX) * width / divider,
-                height - (mapPoint[1] - extremes.minY) * height / divider
+                (int) (mapPoint[0] - extremes.minX) / divider,
+                (int) height - (mapPoint[1] - extremes.minY) / divider
             };
             if (relativeMapPoint[0] < 0 || relativeMapPoint[1] < 0)
             {
                 throw new Exception("Map position is negative");
             }
 
-            if (relativeMapPoint[0] > width || relativeMapPoint[1] > height)
+            if (relativeMapPoint[0] > width + 1 || relativeMapPoint[1] > height + 1)
             {
                 throw new Exception("Map position is out of bounds");
             }
