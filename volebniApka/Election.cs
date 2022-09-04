@@ -219,11 +219,15 @@ public class ElectionFirstPastThePost : Election
     public override void RunElection()
     {
         MandatesToKraje();
+        Parties successfulParties = parties.SuccessfulParties(percentageNeeded, true);
         foreach (var kraj in kraje)
         {
             Counter votes = kraj.Get("votes");
-            var max = votes.GetStuff().Max(x => x.Value);
-            int key = votes.GetStuff().First(x => x.Value == max).Key;
+            var max = votes.GetStuff()
+                .Max(x => ((Party) parties.Get(x.Key)).GetSuccessfullness() ? x.Value : Int32.MinValue);
+            ;
+            int key = votes.GetStuff().First(x => (x.Value == max) && ((Party) parties.Get(x.Key)).GetSuccessfullness())
+                .Key;
             parties.Add("mandates", key, kraj.GetId(), kraj.GetMaxMandates());
         }
     }

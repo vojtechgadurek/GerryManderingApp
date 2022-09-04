@@ -90,6 +90,11 @@ public abstract class VotingObjectGroup : IEnumerable<IVotingObject>
         return GetEnumerator();
     }
 
+    public IVotingObject Get(int id)
+    {
+        return stuff[id];
+    }
+
     public void Add(string where, int idX, int idY, int votes)
     {
         stuff[idX].Add(where, idY, votes);

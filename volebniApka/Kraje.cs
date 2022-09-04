@@ -5,9 +5,15 @@ using System.Drawing;
 
 public class Kraje : VotingObjectGroup
 {
-    public Kraje(Okrsky okrsky, string mapFile)
+    public Kraje(Okrsky okrsky, string mapFile, int mapWidth, int mapHeight)
     {
         Bitmap mapKraje = new Bitmap(mapFile);
+        //there must be - 1, or it wouldnt work
+        if (mapHeight != mapKraje.Height - 1 || mapWidth != mapKraje.Width - 1)
+        {
+            throw new Exception(
+                $"Dimensions of picture {mapKraje.Height - 1} x {mapKraje.Width - 1} do not match the expected dimensions {mapHeight} x {mapWidth}");
+        }
 
         foreach (var okrsek in okrsky.stuff.Values)
         {

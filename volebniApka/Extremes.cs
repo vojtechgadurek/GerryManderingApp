@@ -6,6 +6,9 @@ public class Extremes
     public int maxY;
     public int minX;
     public int minY;
+    public int width;
+    public int height;
+
     public Extremes(IDictionary<int, Okrsek> okrsky)
     {
         var data = okrsky.Values;
@@ -17,5 +20,7 @@ public class Extremes
         maxY = data.Max(x => extremes(x, Int32.MinValue, 1));
         minX = data.Min(x => extremes(x, Int32.MaxValue, 0));
         minY = data.Min(x => extremes(x, Int32.MaxValue, 1));
+        width = maxX - minX;
+        height = maxY - minY;
     }
 }

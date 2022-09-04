@@ -82,8 +82,10 @@ class VolebniApka
 
     static void PrintResults(Parties parties)
     {
-        Console.WriteLine(
+        Action divider;
+        divider = () => Console.WriteLine(
             "-----------------------------------------------------------------------------------------------------------------------");
+        divider();
         Console.WriteLine("Mandates isused: " + parties.GetStuff().Sum(x => x.Value.SumMandates()));
         Console.WriteLine("Id\tMan.\tVotes\tSucc.\tName");
         foreach (Party party in parties)
@@ -92,10 +94,8 @@ class VolebniApka
                 $"{party.GetId()}\t{party.mandates.sum}\t{party.votes.sum}\t{party.isSuccesfull}\t{party.name}");
         }
 
-        Console.WriteLine(
-            "-----------------------------------------------------------------------------------------------------------------------");
+        divider();
     }
-
 
     static string ReadConfigLine(StreamReader streamReader, string test)
     {
@@ -155,7 +155,7 @@ class VolebniApka
         //Console.WriteLine("This are extremes: " + extremes[0] + " " + extremes[1] + " " + extremes[2] + " " + extremes[3]);
         //Draw map
 
-        //Dodělat testovaní, že obrázky splnují rozměry.
+        //Dodělat testovaní, že obrázky splnují rozměry. Done 
         //Volbu generovat nové
         //Nefunguje pro rozdílné poměry => je potřeba to opravit //Opraveno 
 
@@ -164,12 +164,13 @@ class VolebniApka
             okrsek.SetRelativeLocation(mapWidth, mapHeight, mapExtremes);
         }
 
+
         //Tohle bych rád měl samostatně
         Map.CreateMap(votingData, mapWidth, mapHeight, mapFile);
 
         //Open map of kraje
 
-        Kraje kraje = new Kraje(okrsky, mapFile);
+        Kraje kraje = new Kraje(okrsky, mapKrajeFile, mapWidth, mapHeight);
 
         parties.LoadDataFromKraje(kraje);
 
