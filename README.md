@@ -36,6 +36,18 @@ run = Bool - spustí se výpočet
 Po vyplnění je možné spustit program.
 ```
 
+#### Možné vyplnění
+```
+map_file_name = map_krajeI.bmp
+height = 1000
+width = 1000
+voting_method = 2017
+mandates = 200
+percetage_to_be_successful = 0
+create_map = False
+run = True
+```
+
 #### Kreslení mapy
 
 Program vždy vygeneruje mapu okrsků v daných rozměrech. Je možno ji najít pod názvem map.btm. Tento obrázek je možné pomocí oblibeného grafického editoru, použít jako podklad pro nakreslení mapy krajů. Např. Gimp.
@@ -89,6 +101,37 @@ Výsledky ve formátukr krajů "Id\tMan.\tVotes\tSucc.\tName"
 #### Napsání vlastní volební metody
 
 K tomuto účelu je možné využít třídy Election. Data se nacházejí v objektu kraje, strany v parties. Tyto objekty se se chovají jako slovníky(Parties => Party => Votes, Mandates, LeftoverVotes => Counter (KrajId, int)) a obdobně Kraje => Kraj => Votes, Mandates, LeftoverVotes => Counter (ParytId, int) , jež je možno získát pomocí metody Stuff(), ale je možné s nimi pracovat i přímo. Data je potřeba ukládat do stran. 
+
+##### Příklad volební metody
+```
+public class ElectionFirstPastThePost : Election 
+{
+    //First divide mandates between parties, than bettwen kraje 
+    public ElectionFirstPastThePost(int maxMandates, Parties parties, Kraje kraje, float[] percentageNeeded) : base(
+        maxMandates,
+        parties, kraje, percentageNeeded)
+    {
+    }
+
+    public override void RunElection() //Je nutná
+    {
+        MandatesToKraje();
+        Parties successfulParties = parties.SuccessfulParties(percentageNeeded, true);
+        foreach (var kraj in kraje)
+        {
+            Counter votes = kraj.Get("votes");
+            var max = votes.GetStuff()
+                .Max(x => ((Party) parties.Get(x.Key)).GetSuccessfullness() ? x.Value : Int32.MinValue);
+            ;
+            int key = votes.GetStuff().First(x => (x.Value == max) && ((Party) parties.Get(x.Key)).GetSuccessfullness())
+                .Key;
+            parties.Add("mandates", key, kraj.GetId(), kraj.GetMaxMandates());
+        }
+    }
+    //Data se ukládají do parties
+    //kraje, žádná data z principu neočekávají, hodí se jen pro případné debugování
+}
+```
    
 ## Architektura aplikace 
 
