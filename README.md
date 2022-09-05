@@ -11,9 +11,13 @@ Aplikace umožňuje uživateli zkusit si jaké rozdíly způsobují volební met
 
 Program není dokonalý. Největší odchylkou od reality je špatný výpočet v D´Hondtové metodě, který neobsahuje krajovou klauzuli.
 
-Dále v datech chybí k dnešku 127 okrsků, která se nezobrazují na mapě.
+Dále v datech chybí k dnešku 127 okrsků, která se nezobrazují na mapě. 
+
+Aplikace nepracuje se specialními a zahraničními okrsky, jelikož je není možné úmístit do mapy. Jejich Status je Status.ZAHRA a Status.SPECIAL
 
 Dále aplikace nepočítá úspěšné kandidáty, protože s ohledem na možnost upravovat volební kraje, tato funkcionalita postrádá smysl.
+
+Program z důvodu zastaralé knihovny System.Drawing je možné používat jen na operačním systému Windows. 
 
 ### Používání programu
 Program očekává vyplnění souboru settings.txt v následujicím formátu.
@@ -69,6 +73,16 @@ okrskové_číslo
 municipální_číslo -Volitelné
       -Mezery
 ```   
+
+#### Výstup dat
+
+Jako první se výpíše pořet okrsků, které nebyly úmístěny do mapy
+Počet neumístěných hlasů na mapě
+Dále počet pozic, které nebyly přiřazeny k okrskům
+-----------------------------------------------------------
+Výsledky ve formátu stran "Id\tMan.\tVotes\tSucc.\tName"
+-----------------------------------------------------------
+Výsledky ve formátukr krajů "Id\tMan.\tVotes\tSucc.\tName"
 
 #### Napsání vlastní volební metody
 
@@ -137,4 +151,4 @@ počítá jednotlivá skrutinia, hlavně v metodě 2021
 Pozice na mapě jsou ořezány na int. Větší přesnost se zdála nadbytečná
 
 ### Závěr
-Podařilo se mi napsat program, který počítá jednotlivé volební modely pro uživatelem nakreslené volební kraje. Problém spočíval se špatnými opendaty a to především s neexistencí staré
+Podařilo se mi napsat program, který počítá jednotlivé volební modely pro uživatelem nakreslené volební kraje. Problém spočíval se špatnými opendaty a to především s neexistencí starých okrsků, což vedlo ke ztrátě nižších desítek hlasů. Další rozšíření je implementace xml readeru pro okrsková data, integrované kreslítko do aplikace. 
