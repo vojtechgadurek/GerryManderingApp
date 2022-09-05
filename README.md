@@ -5,17 +5,15 @@
 ## Uživatelská příručka 
 
 ### Popis
-Aplikace umožňuje uživateli zkusit si jaké rozdíly způsobují volební metody na datech z voleb do poslanecké sněmovny v roce 2021. A to možností si vybrat z dvou metod a to metody využívané v roce 2021 a staré metody z roku 2017. Dále je možné změnit volební klauzule, počet udělovaných mandátů a nakonec i velikost a počet krajů a to i jaké okrsky jsou do v nich obsaženy. 
+Aplikace umožňuje uživateli zkusit si jaké rozdíly způsobují volební metody na datech z voleb do poslanecké sněmovny v roce 2021. A to možností si vybrat z dvou metod a to metody využívané v roce 2021 a staré metody z roku 2017, dále first past the vote, a reverzní 2017, která prve rozděluje stranám a pozdeji krájům. Dále je možné změnit volební klauzule, počet udělovaných mandátů a nakonec i velikost a počet krajů a to i jaké okrsky jsou do v nich obsaženy.
 
 ### Upozornění na nepřesnosti 
 
-Program není dokonalý. Největší odchylkou od reality je špatný výpočet v D´Hondtové metodě, který neobsahuje krajouvou klauzuli.
+Program není dokonalý. Největší odchylkou od reality je špatný výpočet v D´Hondtové metodě, který neobsahuje krajovou klauzuli.
 
 Dále v datech chybí k dnešku 127 okrsků, která se nezobrazují na mapě.
 
 Dále aplikace nepočítá úspěšné kandidáty, protože s ohledem na možnost upravovat volební kraje, tato funkcionalita postrádá smysl.
-
-Dále nefunguje pokud jsou rozměry mapy rozdílné. 
 
 ### Používání programu
 Program očekává vyplnění souboru settings.txt v následujicím formátu.
@@ -36,9 +34,9 @@ Po vyplnění je možné spustit program.
 
 #### Kreslení mapy
 
-Program vždy vygeneruje mapu okresků v daných rozměrech. Je možno ji najít pod názvem map.btm. Tento obrázek je možné pomocí oblibeného grafického editoru, použít jako podklad pro nakreslení mapy krajů.
+Program vždy vygeneruje mapu okresků v daných rozměrech. Je možno ji najít pod názvem map.btm. Tento obrázek je možné pomocí oblibeného grafického editoru, použít jako podklad pro nakreslení mapy krajů. Např. Gimp.
 
-Mapa se kreslí následujicím způsobem, každý kraj musí mít svojí jednu barvu. Jakákoliv jiná barva bude interpretována jako další kraj. Je tedy duležíté zajistit, aby grafický editor nepoužíval smoothing. Většinou takto funguje nástroj penci.
+Mapa se kreslí následujicím způsobem, každý kraj musí mít svojí jednu barvu. Jakákoliv jiná barva bude interpretována jako další kraj. Je tedy duležíté zajistit, aby grafický editor nepoužíval smoothing. Většinou takto funguje nástroj pencil.
 
 Obrázek musí mít zadané rozměry.
 
@@ -60,7 +58,7 @@ To je možné učnit pomocí souboru názvy_stran.txt, je nutné aby první ID b
 
 Zdrojem primárních dat je https://data.gov.cz/datov%C3%A1-sada?iri=https%3A%2F%2Fdata.gov.cz%2Fzdroj%2Fdatov%C3%A9-sady%2F00025712%2F885a03d4d6fe73adda96ba9b822680b7
 
-Tyto data jsou docela mrzačeny pomocí bashových skriptů. TODO
+Tyto data jsou docela mrzačeny pomocí bashových skriptů.
 
 Jejich formát je následujcí
 
@@ -71,6 +69,10 @@ okrskové_číslo
 municipální_číslo -Volitelné
       -Mezery
 ```   
+
+#### Napsání vlastní volební metody
+
+K tomuto účelu je možné využít třídy Election. Data se nacházejí v objektu kraje, strany v parties. Tyto objekty se se chovají jako slovníky(Parties => Party => Votes, Mandates, LeftoverVotes => Counter (KrajId, int)) a obdobně Kraje => Kraj => Votes, Mandates, LeftoverVotes => Counter (ParytId, int) , jež je možno získát pomocí metody Stuff(), ale je možné s nimi pracovat i přímo. Data je potřeba ukládat do stran. 
    
 ## Architektura aplikace 
 
@@ -94,19 +96,33 @@ Podle dané zvolené metody je zvolena metoda. Výsledky jsou uloženy do jednot
 
 ### Třídy
 
-### VotingObject a IVotingObject
+#### VotingObject a IVotingObject
 
 Je základní objekt, jeho smysl je hlasy, počet mandátů k  => přidělené mandátaty stranám. Můžeme si všimnout, že skrutinia, kraje i strany jsou si velmi podobné i proto jsou syny tohoto objektu. Interface umužnuje efektivní prácí a větší varialibitu. 
 
-### VotingObjectGroup
+#### VotingObjectGroup
 
 Třída sjednocujicí všechny collections VotingObjektů a umožnujicí efektivní práci s němi.
 
-### Parties
+#### Parties
 
-#### SuccesfullParties()
+##### SuccesfullParties(float[] percentageNeeded, bool setSuccesfullnes)
+percentageNeeded je procento hlasů, které n-straná strana potřebuje. Pokud je počet stran větší než délka, aplikuje se číslo na 0 indexu.
+
+Flag setSuccesfullnes určuje, zda se bude u stran nastavovat globální úspěšnost
+
+
 
 #### Okrsek
+
+#### Counter
+
+Implemenuje dictionary s konstatní sumou
+
+##### Sum()
+
+vrácí součet všech hodnot v čase 1.
+
 
 #### Kraj
 
@@ -116,4 +132,9 @@ počítá jednotlivá skrutinia, hlavně v metodě 2021
 
 #### Strana 
 
-#### Lokace Pozice na mapě jsou ořezány na int. Větší přesnost se zdála nadbytečná.
+#### Lokace
+
+Pozice na mapě jsou ořezány na int. Větší přesnost se zdála nadbytečná
+
+### Závěr
+Podařilo se mi napsat program, který počítá jednotlivé volební modely pro uživatelem nakreslené volební kraje. Problém spočíval se špatnými opendaty a to především s neexistencí staré
