@@ -138,13 +138,13 @@ Implemenuje dictionary s konstatní sumou
 
 ##### Sum()
 
-vrácí součet všech hodnot v čase 1.
+Vrácí součet všech hodnot v čase 1.
 
 #### Kraj
 
 #### Skrutinum
 
-počítá jednotlivá skrutinia, hlavně v metodě 2021 
+Počítá jednotlivá skrutinia, hlavně v metodě 2021 
 
 #### Strana 
 
