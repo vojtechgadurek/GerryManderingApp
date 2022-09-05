@@ -102,7 +102,7 @@ Výsledky ve formátu krajů "Id\tMan.\tVotes\tSucc.\tName"
 
 #### Napsání vlastní volební metody
 
-K tomuto účelu je možné využít třídy Election. Data se nacházejí v objektu kraje, strany v parties. Tyto objekty se se chovají jako slovníky(Parties => Party => Votes, Mandates, LeftoverVotes => Counter (KrajId, int)) a obdobně Kraje => Kraj => Votes, Mandates, LeftoverVotes => Counter (ParytId, int) , jež je možno získát pomocí metody Stuff(), ale je možné s nimi pracovat i přímo. Data je potřeba ukládat do stran. 
+K tomuto účelu je možné využít třídy Election. Data se nacházejí v objektu kraje, strany v parties. Tyto objekty se chovají jako slovníky(Parties => Party => Votes, Mandates, LeftoverVotes => Counter (KrajId, int)) a obdobně Kraje => Kraj => Votes, Mandates, LeftoverVotes => Counter (ParytId, int) , jež je možno získát pomocí metody Stuff(), ale je možné s nimi pracovat i přímo. Data je potřeba ukládat do stran. 
 
 Očekává se vlastní implemenatace abstraktní funkce RunElection. 
 
