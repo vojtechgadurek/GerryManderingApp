@@ -76,13 +76,15 @@ municipální_číslo -Volitelné
 
 #### Výstup dat
 
-Jako první se výpíše počet okrsků, které nebyly úmístěny do mapy
+Jako první se výpíše počet okrsků, které nebyly umístěny do mapy
 Počet neumístěných hlasů na mapě
 Dále počet pozic, které nebyly přiřazeny k okrskům
+```  
  -----------------------------------------------------------
 Výsledky ve formátu stran "Id\tMan.\tVotes\tSucc.\tName"
  -----------------------------------------------------------
 Výsledky ve formátukr krajů "Id\tMan.\tVotes\tSucc.\tName"
+```  
 
 #### Napsání vlastní volební metody
 
@@ -106,13 +108,14 @@ Do krajů jsou nahrány data z okrsků.
 
 Podle dané zvolené metody je zvolena metoda. Výsledky jsou uloženy do jednotlivých stran. 
 
-#### Tisk výsledků Vysledky jsou printovány z jednotlivých stran.
+#### Tisk výsledků
+Vysledky jsou printovány z jednotlivých stran.
 
 ### Třídy
 
 #### VotingObject a IVotingObject
 
-Je základní objekt, jeho smysl je hlasy, počet mandátů k  => přidělené mandátaty stranám. Můžeme si všimnout, že skrutinia, kraje i strany jsou si velmi podobné i proto jsou syny tohoto objektu. Interface umužnuje efektivní prácí a větší varialibitu. 
+Je základní objekt, je ukládat počty hlasů, mandátů a pracovat s nimi. Můžeme si všimnout, že skrutinia, kraje i strany jsou si velmi podobné i proto jsou syny tohoto objektu. Interface umužnuje efektivní prácí a větší varialibitu. 
 
 #### VotingObjectGroup
 
@@ -137,7 +140,6 @@ Implemenuje dictionary s konstatní sumou
 
 vrácí součet všech hodnot v čase 1.
 
-
 #### Kraj
 
 #### Skrutinum
@@ -151,4 +153,4 @@ počítá jednotlivá skrutinia, hlavně v metodě 2021
 Pozice na mapě jsou ořezány na int. Větší přesnost se zdála nadbytečná
 
 ### Závěr
-Podařilo se mi napsat program, který počítá jednotlivé volební modely pro uživatelem nakreslené volební kraje. Problém spočíval se špatnými opendaty a to především s neexistencí starých okrsků, což vedlo ke ztrátě nižších desítek hlasů. Další rozšíření je implementace xml readeru pro okrsková data, integrované kreslítko do aplikace. 
+Podařilo se mi napsat program, který počítá jednotlivé volební modely pro uživatelem nakreslené volební kraje. Problém spočíval se špatnými opendaty a to především s neexistencí starých okrsků, což vedlo ke ztrátě nižších desítek tisíc hlasů. Další rozšíření je implementace xml readeru pro okrsková data, integrované kreslítko do aplikace. 
