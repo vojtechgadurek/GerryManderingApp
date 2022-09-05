@@ -20,7 +20,7 @@ Dále aplikace nepočítá úspěšné kandidáty, protože s ohledem na možnos
 Program z důvodu zastaralé knihovny System.Drawing je možné používat jen na operačním systému Windows. 
 
 ### Používání programu
-Program očekává vyplnění souboru settings.txt v následujicím formátu.
+Program očekává vyplnění souboru ```settings.txt```  v následujicím formátu.
 
 ```
 map_file_name = *.bmp - název souboru s mapou kraje
