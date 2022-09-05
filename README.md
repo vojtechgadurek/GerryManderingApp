@@ -139,9 +139,13 @@ public class ElectionFirstPastThePost : Election
    
 ## Architektura aplikace 
 
-### Popis Aplikace se dělí na tři části.
+### Popis 
 
-#### Zpracovánídat Funkce LoadParties nahraje data o stranách
+Aplikace se dělí na tři části.
+
+#### Zpracování dat
+
+Funkce LoadParties nahraje data o stranách
 
 voting_data obsahuje volební data z jednotlivých okrsků
 
