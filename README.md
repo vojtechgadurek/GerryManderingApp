@@ -5,7 +5,7 @@
 ## Uživatelská příručka 
 
 ### Popis
-Aplikace umožňuje uživateli zkusit siy jaké rozdíly způsobují volební metody na datech z voleb do poslanecké sněmovny v roce 2021. Uživatel má možnost si zvolit ze čtyř  metod a to metody využívané v roce 2021 a staré metody z roku 2017, dále first past the vote, a reverzní 2017, která prve rozděluje stranám a pozdeji krájům. Dále je možné změnit volební klauzule, počet udělovaných mandátů a nakonec i velikost a počet krajů a to i jaké okrsky jsou v nich obsaženy.
+Aplikace umožňuje uživateli zkusit si jaké rozdíly způsobují volební metody na datech z voleb do poslanecké sněmovny v roce 2021. Uživatel má možnost si zvolit ze čtyř  metod a to metody využívané v roce 2021 a staré metody z roku 2017, dále first past the vote, a reverzní 2017, která prve rozděluje stranám a pozdeji krájům. Dále je možné změnit volební klauzule, počet udělovaných mandátů a nakonec i velikost a počet krajů a to i jaké okrsky jsou v nich obsaženy.
 
 ### Upozornění na nepřesnosti 
 
