@@ -5,7 +5,7 @@
 ## Uživatelská příručka 
 
 ### Popis
-Aplikace umožňuje uživateli zkusit si jaké rozdíly způsobují volební metody na datech z voleb do poslanecké sněmovny v roce 2021. Uživatel má možnost si zvolit ze čtyř  metod a to metody využívané v roce 2021 a staré metody z roku 2017, dále first past the vote, a reverzní 2017, která prve rozděluje stranám a pozdeji krájům. Dále je možné změnit volební klauzule, počet udělovaných mandátů a nakonec i velikost a počet krajů a to i jaké okrsky jsou v nich obsaženy.
+Aplikace umožňuje uživateli zkusit siy jaké rozdíly způsobují volební metody na datech z voleb do poslanecké sněmovny v roce 2021. Uživatel má možnost si zvolit ze čtyř  metod a to metody využívané v roce 2021 a staré metody z roku 2017, dále first past the vote, a reverzní 2017, která prve rozděluje stranám a pozdeji krájům. Dále je možné změnit volební klauzule, počet udělovaných mandátů a nakonec i velikost a počet krajů a to i jaké okrsky jsou v nich obsaženy.
 
 ### Upozornění na nepřesnosti 
 
@@ -50,9 +50,11 @@ run = True
 
 #### Kreslení mapy
 
-Program vždy vygeneruje mapu okrsků v daných rozměrech. Je možno ji najít pod názvem map.btm. Tento obrázek je možné pomocí oblibeného grafického editoru, použít jako podklad pro nakreslení mapy krajů. Např. Gimp.
+Program vždy vygeneruje mapu okrsků v daných rozměrech. Je možno ji najít pod názvem map.btm. Tento obrázek je možné pomocí oblibeného grafického editoru, použít jako podklad pro nakreslení mapy krajů. Doporučen je například program Gimp.
 
-Mapa se kreslí následujicím způsobem, každý kraj musí mít svojí jednu barvu. Jakákoliv jiná barva bude interpretována jako další kraj. Je tedy duležité zajistit, aby grafický editor nepoužíval smoothing. Většinou takto funguje nástroj pencil.
+Mapa se kreslí následujicím způsobem: 
+
+Každý kraj musí mít svojí jednu barvu. Jakákoliv jiná barva bude interpretována jako další kraj. Je tedy duležité zajistit, aby grafický editor nepoužíval smoothing. Většinou takto funguje nástroj pencil. Tento způsob umožňuje i nesouvislé kraje. 
 
 Obrázek musí mít zadané rozměry.
 
@@ -95,12 +97,14 @@ Dále počet pozic, které nebyly přiřazeny k okrskům
  -----------------------------------------------------------
 Výsledky ve formátu stran "Id\tMan.\tVotes\tSucc.\tName"
  -----------------------------------------------------------
-Výsledky ve formátukr krajů "Id\tMan.\tVotes\tSucc.\tName"
+Výsledky ve formátu krajů "Id\tMan.\tVotes\tSucc.\tName"
 ```  
 
 #### Napsání vlastní volební metody
 
 K tomuto účelu je možné využít třídy Election. Data se nacházejí v objektu kraje, strany v parties. Tyto objekty se se chovají jako slovníky(Parties => Party => Votes, Mandates, LeftoverVotes => Counter (KrajId, int)) a obdobně Kraje => Kraj => Votes, Mandates, LeftoverVotes => Counter (ParytId, int) , jež je možno získát pomocí metody Stuff(), ale je možné s nimi pracovat i přímo. Data je potřeba ukládat do stran. 
+
+Očekává se vlastní implemenatace abstraktní funkce RunElection. 
 
 ##### Příklad volební metody
 ```
