@@ -64,13 +64,13 @@ Obrázek musí mít zadané rozměry.
 
 Zdrojem dat je https://www.volby.cz/opendata/opendata.html - a jejich autorem je český statictický úřad.
 
-Ta je možna změnit pomocí nahrání jiného souboru s názvem "pst4p.csv", který musí obsahovat následujicí sloupce ID_OKRSKY,TYP_FORM,OPRAVA,CHYBA,OKRES,OBEC,OKRSEK,KC_1,KSTRANA,POC_HLASU.
+Ta je možna změnit pomocí nahrání jiného souboru s názvem "pst4p.csv", který musí obsahovat následujicí sloupce ```ID_OKRSKY,TYP_FORM,OPRAVA,CHYBA,OKRES,OBEC,OKRSEK,KC_1,KSTRANA,POC_HLASU.```
 
 #### Změna kandidujicích stran
 
 Zdrojem dat je https://www.seznamzpravy.cz/clanek/volby-2021-kdo-kandiduje-a-koho-volit-173806
 
-To je možné učnit pomocí souboru názvy_stran.txt, je nutné aby první ID byla 1 a dále se zvedala po jedné. Formát dat je následujicí: ID\tNázev strany\tJméno republikového lídra\tpočet stran v koalici.
+To je možné učnit pomocí souboru názvy_stran.txt, je nutné aby první ID byla 1 a dále se zvedala po jedné. Formát dat je následujicí: ```ID\tNázev strany\tJméno republikového lídra\tpočet stran v koalici```
 
 #### Změna pozic okrsků
 
