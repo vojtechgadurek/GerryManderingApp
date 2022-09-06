@@ -40,6 +40,10 @@ public abstract class Election
             {
                 votesPartiesSorted.Add(party.Value, new List<int>());
             }
+            catch
+            {
+                //do nothing
+            }
             finally
             {
                 votesPartiesSorted[party.Value].Add(party.Key);
@@ -216,7 +220,7 @@ public class ElectionFirstPastThePost : Election
     {
     }
 
-    public override void RunElection()
+    public override void RunElection() //
     {
         MandatesToKraje();
         Parties successfulParties = parties.SuccessfulParties(percentageNeeded, true);
