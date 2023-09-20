@@ -1,7 +1,9 @@
-#  Dokumentace - Aplikace pro výpočet voleb 
+#  Dokumentace - Aplikace pro výpočet voleb / Gerrymandering app
 
 ## Autor - Vojtěch Gadurek 
-
+## EN - Abstact
+This app was created is end of course project in Intro to Programing to.
+It allows user to draw his own election district and choose his own election method on 2021 Czech Republic election data.
 ## Uživatelská příručka 
 
 ### Popis
